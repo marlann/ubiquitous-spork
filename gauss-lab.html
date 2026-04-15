@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gauss's Law · Interactive Lab — PHYS-282</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0f1a; }
+  #root { min-height: 100vh; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+// ── Canvas geometry ────────────────────────────────────────────────────────────
+const W = 450, H = 450, SC = 40;
+const OX = W / 2, OY = H / 2;
+const NPTS = 360, GRID = 36;
+
+const tC   = (x, y) => [OX + x * SC, OY - y * SC];
+const tP   = (cx, cy) => [(cx - OX) / SC, (OY - cy) / SC];
+const cvPt = (e, canvas) => {
+  const r  = canvas.getBoundingClientRect();
+  const sx = W / r.width, sy = H / r.height;
+  const s  = e.touches?.[0] ?? e.changedTouches?.[0] ?? e;
+  return [(s.clientX - r.left) * sx, (s.clientY - r.top) * sy];
+};
+
+// ── Charge configurations ──────────────────────────────────────────────────────
+const CFGS = {
+  single_pos: {
+    label: "One Line of Positive Charge",
+    sub:   "⊕  +λ  (line perpendicular to screen)",
+    charges: [{ x: 0, y: 0, q: +1 }],
+  },
+  dipole: {
+    label: "One Line of Negative Charge Parallel to One Line of Positive Charge",
+    sub:   "⊕ +λ (left)  ·  ⊖ −λ (right)",
+    charges: [{ x: -2, y: 0, q: +1 }, { x: 2, y: 0, q: -1 }],
+  },
+  same: {
+    label: "Two Parallel Lines of Positive Charge",
+    sub:   "⊕ ⊕  both +λ  (lines perpendicular to screen)",
+    charges: [{ x: -2, y: 0, q: +1 }, { x: 2, y: 0, q: +1 }],
+  },
+};
+
+// ── Physics ────────────────────────────────────────────────────────────────────
+function Efield(px, py, charges) {
+  let Ex = 0, Ey = 0;
+  for (const { x, y, q } of charges) {
+    const dx = px - x, dy = py - y, r2 = dx * dx + dy * dy;
+    if (r2 < 0.06) continue;
+    Ex += q * dx / r2;
+    Ey += q * dy / r2;
+  }
+  return [Ex, Ey];
+}
+
+// ∮ E · n̂_out dl = ∮ (Ex dy − Ey dx),  result / 2π = net enclosed lines
+function fluxIntegral(pts, charges) {
+  let sum = 0;
+  const N = pts.length;
+  for (let i = 0; i < N; i++) {
+    const [x0, y0] = pts[i], [x1, y1] = pts[(i + 1) % N];
+    const [Ex, Ey] = Efield((x0 + x1) / 2, (y0 + y1) / 2, charges);
+    const dx = x1 - x0, dy = y1 - y0;
+    sum += Ex * dy - Ey * dx;
+  }
+  return sum / (2 * Math.PI);
+}
+
+function makeCircle(lx, ly, rw) {
+  return Array.from({ length: NPTS }, (_, i) => {
+    const t = (2 * Math.PI * i) / NPTS;
+    return [lx + rw * Math.cos(t), ly + rw * Math.sin(t)];
+  });
+}
+function makeRect(lx, ly, rw, rh) {
+  const q = NPTS / 4 | 0, pts = [];
+  for (let i = 0; i < q; i++) pts.push([lx - rw + (2 * rw * i) / q, ly - rh]);
+  for (let i = 0; i < q; i++) pts.push([lx + rw, ly - rh + (2 * rh * i) / q]);
+  for (let i = 0; i < q; i++) pts.push([lx + rw - (2 * rw * i) / q, ly + rh]);
+  for (let i = 0; i < q; i++) pts.push([lx - rw, ly + rh - (2 * rh * i) / q]);
+  return pts;
+}
+
+function pointInPoly(pts, wx, wy) {
+  let inside = false;
+  const n = pts.length;
+  for (let i = 0, j = n - 1; i < n; j = i++) {
+    const [xi, yi] = pts[i], [xj, yj] = pts[j];
+    if (((yi > wy) !== (yj > wy)) && (wx < (xj - xi) * (wy - yi) / (yj - yi) + xi))
+      inside = !inside;
+  }
+  return inside;
+}
+
+function isEnclosed(type, lx, ly, rw, rh, cx, cy, freePts) {
+  if (type === "circle") return (cx - lx) ** 2 + (cy - ly) ** 2 < rw * rw;
+  if (type === "rect")   return Math.abs(cx - lx) < rw && Math.abs(cy - ly) < rh;
+  if (!freePts || freePts.length < 3) return false;
+  return pointInPoly(freePts, cx, cy);
+}
+
+function resample(pts, n = NPTS) {
+  if (pts.length < 2) return pts;
+  const dists = [0];
+  for (let i = 1; i < pts.length; i++) {
+    const [x0, y0] = pts[i - 1], [x1, y1] = pts[i];
+    dists.push(dists[i - 1] + Math.hypot(x1 - x0, y1 - y0));
+  }
+  const total = dists[dists.length - 1];
+  if (total === 0) return pts;
+  const result = [];
+  let j = 0;
+  for (let i = 0; i < n; i++) {
+    const target = (total * i) / n;
+    while (j < dists.length - 2 && dists[j + 1] < target) j++;
+    const t = (target - dists[j]) / (dists[j + 1] - dists[j] || 1);
+    const [x0, y0] = pts[j], [x1, y1] = pts[j + 1] || pts[j];
+    result.push([x0 + (x1 - x0) * t, y0 + (y1 - y0) * t]);
+  }
+  return result;
+}
+
+// ── Renderer ──────────────────────────────────────────────────────────────────
+function render(ctx, charges, loopPts, loopType, isDragging, drawing, drawPtsCanvas) {
+  ctx.fillStyle = "#0a0f1a";
+  ctx.fillRect(0, 0, W, H);
+
+  for (let g = -5; g <= 5; g++) {
+    const [gcx] = tC(g, 0), [, gcy] = tC(0, g);
+    ctx.lineWidth   = g === 0 ? 1 : 0.5;
+    ctx.strokeStyle = g === 0 ? "rgba(160,100,50,0.5)" : "rgba(130,75,30,0.18)";
+    ctx.beginPath(); ctx.moveTo(gcx, 0); ctx.lineTo(gcx, H); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, gcy); ctx.lineTo(W, gcy); ctx.stroke();
+  }
+  ctx.font = "8px 'Courier New'"; ctx.fillStyle = "rgba(160,100,50,0.28)"; ctx.textAlign = "center";
+  for (let g = -5; g <= 5; g++) {
+    if (g === 0) continue;
+    const [gcx] = tC(g, 0);
+    ctx.fillText(g, gcx, OY + 13);
+  }
+
+  for (let px = GRID / 2; px < W; px += GRID) {
+    for (let py = GRID / 2; py < H; py += GRID) {
+      const [fx, fy] = tP(px, py);
+      if (charges.some(c => (fx - c.x) ** 2 + (fy - c.y) ** 2 < 0.22)) continue;
+      const [Ex, Ey] = Efield(fx, fy, charges);
+      const Em = Math.hypot(Ex, Ey);
+      if (Em < 0.005) continue;
+      const nx = Ex / Em, ny = -Ey / Em;
+      const len = Math.min(14, 2 + 8 * Math.log1p(Em * 2.5));
+      const alpha = Math.min(0.9, 0.18 + 0.65 * Math.min(1, Em));
+      const x1 = px - nx * len * 0.35, y1 = py - ny * len * 0.35;
+      const x2 = px + nx * len * 0.65, y2 = py + ny * len * 0.65;
+      const clr = `rgba(255,160,40,${alpha})`;
+      ctx.strokeStyle = clr; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+      const ang = Math.atan2(ny, nx), hl = 4.5;
+      ctx.fillStyle = clr;
+      ctx.beginPath();
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(x2 - hl * Math.cos(ang - 0.45), y2 - hl * Math.sin(ang - 0.45));
+      ctx.lineTo(x2 - hl * Math.cos(ang + 0.45), y2 - hl * Math.sin(ang + 0.45));
+      ctx.closePath(); ctx.fill();
+    }
+  }
+
+  function drawDirArrow(cpts, frac) {
+    const idx = Math.floor(cpts.length * frac);
+    const p0 = cpts[idx], p1 = cpts[Math.min(idx + 3, cpts.length - 1)];
+    if (!p0 || !p1) return;
+    const dm = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]);
+    if (dm < 0.5) return;
+    const ndx = (p1[0] - p0[0]) / dm, ndy = (p1[1] - p0[1]) / dm;
+    const mx = (p0[0] + p1[0]) / 2, my = (p0[1] + p1[1]) / 2;
+    const ang = Math.atan2(ndy, ndx), hl = 8;
+    ctx.fillStyle = "rgba(240,240,240,0.88)";
+    ctx.beginPath();
+    ctx.moveTo(mx + ndx * hl * 0.5, my + ndy * hl * 0.5);
+    ctx.lineTo(mx - hl * Math.cos(ang - 0.5), my - hl * Math.sin(ang - 0.5));
+    ctx.lineTo(mx - hl * Math.cos(ang + 0.5), my - hl * Math.sin(ang + 0.5));
+    ctx.closePath(); ctx.fill();
+  }
+
+  if (loopType !== "free" && loopPts.length > 1) {
+    const cpts = loopPts.map(([x, y]) => tC(x, y));
+    ctx.beginPath(); ctx.moveTo(cpts[0][0], cpts[0][1]);
+    for (let i = 1; i < cpts.length; i++) ctx.lineTo(cpts[i][0], cpts[i][1]);
+    ctx.closePath();
+    ctx.fillStyle = isDragging ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.03)"; ctx.fill();
+    ctx.shadowColor = "rgba(255,255,255,0.50)"; ctx.shadowBlur = isDragging ? 18 : 8;
+    ctx.strokeStyle = isDragging ? "#ffffff" : "rgba(230,230,230,0.9)"; ctx.lineWidth = isDragging ? 3 : 2.5;
+    ctx.stroke(); ctx.shadowBlur = 0;
+    drawDirArrow(cpts, loopType === "circle" ? 0.25 : 0.625);
+  }
+
+  if (loopType === "free" && drawing && drawPtsCanvas.length > 1) {
+    ctx.beginPath(); ctx.moveTo(drawPtsCanvas[0][0], drawPtsCanvas[0][1]);
+    for (let i = 1; i < drawPtsCanvas.length; i++) ctx.lineTo(drawPtsCanvas[i][0], drawPtsCanvas[i][1]);
+    ctx.strokeStyle = "rgba(220,220,220,0.55)"; ctx.lineWidth = 2.2; ctx.setLineDash([5, 4]);
+    ctx.stroke(); ctx.setLineDash([]);
+  }
+
+  if (loopType === "free" && !drawing && loopPts.length > 2) {
+    const cpts = loopPts.map(([x, y]) => tC(x, y));
+    ctx.beginPath(); ctx.moveTo(cpts[0][0], cpts[0][1]);
+    for (let i = 1; i < cpts.length; i++) ctx.lineTo(cpts[i][0], cpts[i][1]);
+    ctx.closePath();
+    ctx.fillStyle = "rgba(255,255,255,0.05)"; ctx.fill();
+    ctx.shadowColor = "rgba(255,255,255,0.55)"; ctx.shadowBlur = 10;
+    ctx.strokeStyle = "rgba(230,230,230,0.9)"; ctx.lineWidth = 2.5; ctx.stroke(); ctx.shadowBlur = 0;
+    drawDirArrow(cpts, 0.05);
+  }
+
+  if (loopType === "free" && loopPts.length === 0 && !drawing) {
+    ctx.font = "13px 'Courier New'"; ctx.textAlign = "center";
+    ctx.fillStyle = "rgba(220,220,220,0.15)";
+    ctx.fillText("✏  draw your Gaussian surface", OX, OY + 160);
+    ctx.font = "10px 'Courier New'"; ctx.fillStyle = "rgba(220,220,220,0.07)";
+    ctx.fillText("click & drag on the canvas", OX, OY + 178);
+  }
+
+  // Charge symbols — ⊕ red-orange, ⊖ blue (M&I convention)
+  for (const { x, y, q } of charges) {
+    const [wcx, wcy] = tC(x, y);
+    const [wr, wg, wb] = q > 0 ? [255, 80, 40] : [40, 100, 255];
+    const wclr = `rgb(${wr},${wg},${wb})`;
+    const grd = ctx.createRadialGradient(wcx, wcy, 0, wcx, wcy, 26);
+    grd.addColorStop(0, `rgba(${wr},${wg},${wb},0.42)`);
+    grd.addColorStop(1, `rgba(${wr},${wg},${wb},0)`);
+    ctx.fillStyle = grd; ctx.beginPath(); ctx.arc(wcx, wcy, 26, 0, 2 * Math.PI); ctx.fill();
+    ctx.beginPath(); ctx.arc(wcx, wcy, 10, 0, 2 * Math.PI);
+    ctx.strokeStyle = wclr; ctx.lineWidth = 2.5; ctx.stroke();
+    ctx.fillStyle = "#0a0f1a"; ctx.fill();
+    ctx.strokeStyle = wclr; ctx.lineWidth = 2.2;
+    ctx.beginPath(); ctx.moveTo(wcx - 5.5, wcy); ctx.lineTo(wcx + 5.5, wcy); ctx.stroke();
+    if (q > 0) { ctx.beginPath(); ctx.moveTo(wcx, wcy - 5.5); ctx.lineTo(wcx, wcy + 5.5); ctx.stroke(); }
+  }
+}
+
+// ── Component ──────────────────────────────────────────────────────────────────
+function GaussLab() {
+  const cvs = useRef(null);
+  const [ltype,    setLtype]    = useState("circle");
+  const [lx,       setLx]       = useState(0);
+  const [ly,       setLy]       = useState(0);
+  const [rw,       setRw]       = useState(2.5);
+  const [rh,       setRh]       = useState(1.5);
+  const [freePts,  setFreePts]  = useState([]);
+  const [drawPtsC, setDrawPtsC] = useState([]);
+  const [drawing,  setDrawing]  = useState(false);
+  const [cfgKey,   setCfgKey]   = useState("single_pos");
+  const [pred,     setPred]     = useState("");
+  const [revealed, setRevealed] = useState(false);
+  const [dragging, setDragging] = useState(false);
+
+  const charges   = CFGS[cfgKey].charges;
+  const loopPts   = ltype === "circle" ? makeCircle(lx, ly, rw)
+                  : ltype === "rect"   ? makeRect(lx, ly, rw, rh)
+                  :                      freePts;
+  const result    = loopPts.length > 2 ? fluxIntegral(loopPts, charges) : null;
+  const resRnd    = result !== null ? Math.round(result * 1000) / 1000 : null;
+  const encInfo   = charges.map(c => ({ ...c, inside: isEnclosed(ltype, lx, ly, rw, rh, c.x, c.y, freePts) }));
+  const netQ      = encInfo.filter(e => e.inside).reduce((s, e) => s + e.q, 0);
+  const isNearInt = resRnd !== null && Math.abs(result - Math.round(result)) < 0.08;
+  const resColor  = isNearInt ? "#ffb030" : "#ff6060";
+  const hasFreeLoop = ltype === "free" && freePts.length > 2 && !drawing;
+  const canReveal   = result !== null && (ltype !== "free" || hasFreeLoop);
+
+  useEffect(() => {
+    const ctx = cvs.current?.getContext("2d");
+    if (ctx) render(ctx, charges, loopPts, ltype, dragging, drawing, drawPtsC);
+  });
+
+  const onDown = useCallback(e => {
+    if (ltype === "free") {
+      e.preventDefault();
+      setDrawPtsC([cvPt(e, cvs.current)]); setFreePts([]); setDrawing(true); setRevealed(false); return;
+    }
+    const [px, py] = tP(...cvPt(e, cvs.current));
+    const hit = ltype === "circle" ? Math.hypot(px - lx, py - ly) < rw + 0.8 : Math.abs(px - lx) < rw + 0.7 && Math.abs(py - ly) < rh + 0.7;
+    if (hit) { setDragging(true); e.preventDefault(); }
+  }, [ltype, lx, ly, rw, rh]);
+
+  const onMove = useCallback(e => {
+    if (ltype === "free" && drawing) { e.preventDefault(); setDrawPtsC(prev => [...prev, cvPt(e, cvs.current)]); return; }
+    if (dragging) { e.preventDefault(); const [px, py] = tP(...cvPt(e, cvs.current)); setLx(Math.max(-4.5, Math.min(4.5, px))); setLy(Math.max(-4.5, Math.min(4.5, py))); }
+  }, [ltype, drawing, dragging]);
+
+  const onUp = useCallback(e => {
+    if (ltype === "free" && drawing) {
+      e.preventDefault();
+      const physRaw = drawPtsC.map(([cx, cy]) => tP(cx, cy));
+      setFreePts(physRaw.length > 5 ? resample(physRaw, NPTS) : []); setDrawPtsC([]); setDrawing(false); return;
+    }
+    setDragging(false);
+  }, [ltype, drawing, drawPtsC]);
+
+  const card = { background: "rgba(255,140,30,0.04)", border: "1px solid rgba(255,140,30,0.15)", borderRadius: "3px", padding: "12px" };
+  const sh   = { margin: "0 0 10px", fontSize: "9px", color: "#ffa030", letterSpacing: "2.5px", textTransform: "uppercase" };
+  const mkBtn = (active, extra = {}) => ({ padding: "5px 9px", fontSize: "10px", fontFamily: "'Courier New',monospace", letterSpacing: "0.8px", background: active ? "rgba(255,140,30,0.18)" : "transparent", border: `1px solid ${active ? "#ffa030" : "rgba(255,140,30,0.28)"}`, color: active ? "#ffa030" : "#5a4530", cursor: "pointer", borderRadius: "2px", ...extra });
+
+  return (
+    <div style={{ background: "#0a0f1a", color: "#c0a880", fontFamily: "'Courier New',monospace", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+      <div style={{ padding: "11px 18px", borderBottom: "1px solid rgba(255,140,30,0.18)", display: "flex", alignItems: "center", gap: "14px", flexWrap: "wrap" }}>
+        <h1 style={{ margin: 0, fontWeight: "normal", fontSize: "13px", color: "#ffa030", letterSpacing: "3px", textTransform: "uppercase" }}>Gauss's Law · Interactive Lab</h1>
+        <span style={{ fontSize: "11px", color: "rgba(200,170,130,0.38)" }}>∮ E · n̂ dl = λ<sub>enc</sub> / ε₀ &nbsp;·&nbsp; PHYS-282</span>
+      </div>
+      <div style={{ display: "flex", flexWrap: "wrap", flex: 1 }}>
+        <div style={{ padding: "14px", flexShrink: 0 }}>
+          <canvas ref={cvs} width={W} height={H}
+            style={{ display: "block", border: "1px solid rgba(255,140,30,0.18)", cursor: ltype === "free" ? (drawing ? "crosshair" : "cell") : (dragging ? "grabbing" : "grab"), touchAction: "none", maxWidth: "100%" }}
+            onMouseDown={onDown} onMouseMove={onMove} onMouseUp={onUp} onMouseLeave={onUp}
+            onTouchStart={onDown} onTouchMove={onMove} onTouchEnd={onUp} />
+          <p style={{ margin: "5px 0 0", fontSize: "8.5px", color: "rgba(180,140,80,0.30)", textAlign: "center", letterSpacing: "1.2px" }}>
+            {ltype === "free" ? "CLICK & DRAG TO DRAW · RELEASE TO CLOSE" : "DRAG SURFACE TO REPOSITION"}
+            &nbsp;·&nbsp;<span style={{ color: "#ff6040" }}>⊕</span> +λ &nbsp;·&nbsp;<span style={{ color: "#4064ff" }}>⊖</span> −λ &nbsp;·&nbsp; <span style={{ color: "rgba(220,220,220,0.55)" }}>WHITE = CCW DIRECTION</span>
+          </p>
+        </div>
+        <div style={{ flex: 1, minWidth: "260px", padding: "14px", display: "flex", flexDirection: "column", gap: "11px", borderLeft: "1px solid rgba(255,140,30,0.1)" }}>
+          <div style={card}>
+            <p style={sh}>01 · Charge Setup</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+              {Object.entries(CFGS).map(([k, v]) => (
+                <button key={k} style={{ ...mkBtn(cfgKey === k), textAlign: "left", padding: "7px 10px" }} onClick={() => { setCfgKey(k); setRevealed(false); }}>
+                  <span style={{ display: "block" }}>{v.label}</span>
+                  <span style={{ display: "block", fontSize: "9px", color: cfgKey === k ? "rgba(255,160,48,0.55)" : "rgba(90,70,48,0.88)", marginTop: "2px" }}>{v.sub}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div style={card}>
+            <p style={sh}>02 · Gaussian Surface</p>
+            <div style={{ display: "flex", gap: "6px", marginBottom: "10px", flexWrap: "wrap" }}>
+              {[{ key: "circle", label: "Circle" }, { key: "rect", label: "Rectangle" }, { key: "free", label: "✏ Freehand" }].map(({ key, label }) => (
+                <button key={key} style={mkBtn(ltype === key)} onClick={() => { setLtype(key); setRevealed(false); setFreePts([]); setDrawPtsC([]); }}>{label}</button>
+              ))}
+            </div>
+            {ltype === "free" && (
+              <div style={{ marginBottom: "4px" }}>
+                <div style={{ fontSize: "10px", lineHeight: 1.75, color: "rgba(255,215,0,0.50)", marginBottom: "6px" }}>
+                  {drawing ? "✏ drawing… release to close" : hasFreeLoop ? "✓ surface drawn — draw again to replace" : "Click & drag to sketch any closed surface. The flux integral is computed regardless of shape."}
+                </div>
+                {hasFreeLoop && <button style={{ ...mkBtn(false), fontSize: "9px", padding: "4px 8px", borderColor: "rgba(255,100,100,0.28)", color: "rgba(255,107,107,0.7)" }} onClick={() => { setFreePts([]); setRevealed(false); }}>✕ clear surface</button>}
+              </div>
+            )}
+            {ltype !== "free" && [
+              { label: "X Position", val: lx, fn: setLx, min: -4.5, max: 4.5 },
+              { label: "Y Position", val: ly, fn: setLy, min: -4.5, max: 4.5 },
+              { label: ltype === "circle" ? "Radius" : "Half-Width", val: rw, fn: setRw, min: 0.4, max: 4.5 },
+              ...(ltype === "rect" ? [{ label: "Half-Height", val: rh, fn: setRh, min: 0.4, max: 4.5 }] : []),
+            ].map(({ label, val, fn, min, max }) => (
+              <div key={label} style={{ marginBottom: "6px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", color: "rgba(200,165,110,0.5)", marginBottom: "3px" }}><span>{label}</span><span style={{ color: "#ffd700" }}>{val.toFixed(1)}</span></div>
+                <input type="range" min={min} max={max} step="0.1" value={val} style={{ width: "100%", accentColor: "#ffa030" }} onChange={e => fn(+e.target.value)} />
+              </div>
+            ))}
+          </div>
+          <div style={card}>
+            <p style={sh}>03 · Enclosed Lines of Charge</p>
+            {(ltype !== "free" || hasFreeLoop) ? (
+              <>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                  {encInfo.map((c, i) => {
+                    const isIn = c.inside, pos = c.q > 0;
+                    return <div key={i} style={{ padding: "5px 9px", borderRadius: "2px", fontSize: "10px", background: isIn ? (pos ? "rgba(255,120,40,0.13)" : "rgba(40,100,255,0.13)") : "rgba(60,45,30,0.3)", border: `1px solid ${isIn ? (pos ? "rgba(255,120,40,0.38)" : "rgba(40,100,255,0.38)") : "rgba(90,70,48,0.28)"}`, color: isIn ? (pos ? "#ff8040" : "#4080ff") : "#4a3520" }}>
+                      {c.q > 0 ? "⊕" : "⊖"}&nbsp; Line {i + 1}:&nbsp;<strong>{isIn ? "✓ enclosed" : "— outside"}</strong>
+                    </div>;
+                  })}
+                </div>
+                {charges.length > 1 && <p style={{ margin: "8px 0 0", fontSize: "11px", color: "rgba(200,165,110,0.52)" }}>Net λ<sub>enc</sub>: <span style={{ color: "#ffd700", fontWeight: "bold" }}>{netQ >= 0 ? "+" : ""}{netQ} λ</span></p>}
+              </>
+            ) : <p style={{ margin: 0, fontSize: "10px", color: "rgba(130,100,60,0.55)" }}>{drawing ? "Drawing…" : "Draw a surface to see enclosure status"}</p>}
+          </div>
+          <div style={card}>
+            <p style={sh}>04 · Predict & Verify</p>
+            <p style={{ margin: "0 0 8px", fontSize: "10px", color: "rgba(200,165,110,0.48)", lineHeight: 1.7 }}>Before revealing: what do you expect ∮ E · n̂ dl / (λ/ε₀) to equal?</p>
+            <input type="text" placeholder="your prediction…" value={pred}
+              style={{ width: "100%", boxSizing: "border-box", background: "rgba(0,0,0,0.45)", border: "1px solid rgba(255,140,30,0.32)", color: "#ffd700", padding: "8px 10px", fontSize: "14px", fontFamily: "'Courier New',monospace", borderRadius: "2px", outline: "none" }}
+              onChange={e => { setPred(e.target.value); setRevealed(false); }} />
+            <button disabled={!canReveal}
+              style={{ width: "100%", padding: "9px", marginTop: "8px", background: "rgba(255,215,0,0.08)", border: "1px solid rgba(255,215,0,0.36)", color: canReveal ? "#ffd700" : "rgba(255,215,0,0.22)", cursor: canReveal ? "pointer" : "not-allowed", fontSize: "10px", letterSpacing: "2.5px", borderRadius: "2px", fontFamily: "'Courier New',monospace" }}
+              onClick={() => setRevealed(true)}>▶ REVEAL RESULT</button>
+            {revealed && result !== null && (
+              <div style={{ marginTop: "12px", padding: "14px 12px", background: "rgba(0,0,0,0.38)", borderRadius: "3px", textAlign: "center" }}>
+                <div style={{ fontSize: "46px", fontWeight: "bold", color: resColor, lineHeight: 1, letterSpacing: "-1px" }}>{resRnd >= 0 ? "+" : ""}{resRnd.toFixed(3)}</div>
+                <div style={{ fontSize: "10px", color: "rgba(200,165,110,0.4)", marginTop: "5px", letterSpacing: "1px" }}>∮ E · n̂ dl &nbsp;/&nbsp; (λ/ε₀)</div>
+                <div style={{ marginTop: "10px", padding: "8px", background: `rgba(${isNearInt ? "255,180,48" : "255,80,80"},0.08)`, borderRadius: "2px", border: `1px solid rgba(${isNearInt ? "255,180,48" : "255,80,80"},0.2)` }}>
+                  <span style={{ fontSize: "13px", color: resColor }}>≈ <span style={{ fontSize: "20px", fontWeight: "bold" }}>{netQ >= 0 ? "+" : ""}{netQ}</span> × (λ/ε₀)</span>
+                </div>
+                {ltype === "circle" && Math.abs(netQ) >= 1 && isNearInt && (
+                  <div style={{ marginTop: "10px", padding: "10px", background: "rgba(255,160,40,0.06)", border: "1px solid rgba(255,160,40,0.18)", borderRadius: "2px", textAlign: "left" }}>
+                    <div style={{ fontSize: "9px", color: "#ffa030", letterSpacing: "1.5px", marginBottom: "6px" }}>DERIVE E</div>
+                    <div style={{ fontSize: "10px", color: "rgba(200,165,110,0.7)", lineHeight: 1.9 }}>
+                      Surface circumference = 2πr = 2π × {rw.toFixed(1)} μm<br />
+                      ∮ E · n̂ dl = E × 2πr = {netQ} × (λ/ε₀)<br />
+                      ∴ E = {netQ} × (λ/ε₀) / (2π × {rw.toFixed(1)} μm)
+                    </div>
+                  </div>
+                )}
+                {pred && <div style={{ marginTop: "10px", fontSize: "10px", color: "rgba(200,165,110,0.38)", borderTop: "1px solid rgba(200,165,110,0.1)", paddingTop: "8px" }}>your prediction: <span style={{ color: "rgba(255,215,0,0.72)" }}>{pred}</span></div>}
+                {!isNearInt && <div style={{ marginTop: "8px", fontSize: "9px", color: "#ff6060" }}>⚠ Non-integer — surface may be crossing a charge</div>}
+              </div>
+            )}
+          </div>
+          <div style={{ fontSize: "9px", color: "rgba(130,100,60,0.38)", lineHeight: 1.8, padding: "0 2px" }}>
+            Integral: ∮ E · n̂_out dl = ∮ (E_x dy − E_y dx). Units: λ/(2πε₀) = 1 per line. Result / 2π → integer = net enclosed lines. Freehand paths resampled to N=360 pts.
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<GaussLab />);
+</script>
+</body>
+</html>
