@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How Did We Learn to Read the World? — Book Club</title>
+  <meta name="description" content="A book club creating safe, joyful community for kids with intersectional identities — exploring science, mythology, nature, poetry, and justice together.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* ── Reset & base ─────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream:    #FDF6EC;
+      --ink:      #2B2B2B;
+      --ink-soft: #4A4A4A;
+      --blue:     #1B5FA8;
+      --blue-lt:  #E8F0FA;
+      --amber:    #C4782A;
+      --amber-lt: #FDF0DC;
+      --green:    #2E7D4F;
+      --green-lt: #E6F4EC;
+      --violet:   #6B3FA0;
+      --violet-lt:#F2EBF9;
+      --rose:     #B03060;
+      --rose-lt:  #FCEEF3;
+      --border:   #E2D9CE;
+      --shadow:   0 2px 12px rgba(0,0,0,.08);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Open Sans', system-ui, sans-serif;
+      background: var(--cream);
+      color: var(--ink);
+      line-height: 1.7;
+      font-size: 1rem;
+    }
+
+    a { color: var(--blue); }
+    a:hover { text-decoration: underline; }
+
+    h1, h2, h3, h4 {
+      font-family: 'Lora', Georgia, serif;
+      line-height: 1.25;
+    }
+
+    img { display: block; max-width: 100%; }
+
+    /* ── Skip link ───────────────────────────────────── */
+    .skip-link {
+      position: absolute; top: -999px; left: 0;
+      background: var(--blue); color: #fff;
+      padding: .5rem 1rem; z-index: 999;
+      font-size: .875rem;
+    }
+    .skip-link:focus { top: 0; }
+
+    /* ── Layout helpers ──────────────────────────────── */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    section { padding: 4rem 0; }
+    section:not(:last-child) { border-bottom: 1px solid var(--border); }
+
+    /* ── Header / Hero ───────────────────────────────── */
+    header {
+      background: linear-gradient(135deg, #0D3A6E 0%, #1B5FA8 60%, #2E7D4F 100%);
+      color: #fff;
+      padding: 4rem 1.5rem 3.5rem;
+      text-align: center;
+    }
+
+    .hero-eyebrow {
+      font-size: .875rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      opacity: .8;
+      margin-bottom: .75rem;
+    }
+
+    header h1 {
+      font-size: clamp(1.9rem, 5vw, 3rem);
+      font-style: italic;
+      margin-bottom: 1rem;
+    }
+
+    .hero-tagline {
+      font-size: 1.1rem;
+      opacity: .9;
+      max-width: 640px;
+      margin: 0 auto 2rem;
+    }
+
+    .hero-nav {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: .75rem;
+      list-style: none;
+    }
+
+    .hero-nav a {
+      color: #fff;
+      background: rgba(255,255,255,.15);
+      border: 1px solid rgba(255,255,255,.35);
+      border-radius: 2rem;
+      padding: .4rem 1.1rem;
+      font-size: .9rem;
+      font-family: 'Open Sans', sans-serif;
+      text-decoration: none;
+      transition: background .2s;
+    }
+    .hero-nav a:hover { background: rgba(255,255,255,.28); }
+
+    /* ── About ───────────────────────────────────────── */
+    #about h2 { font-size: 1.75rem; margin-bottom: 1rem; color: var(--blue); }
+
+    .about-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .about-card {
+      background: #fff;
+      border-radius: .75rem;
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+      border-top: 4px solid var(--amber);
+    }
+
+    .about-card h3 {
+      font-size: 1rem;
+      margin-bottom: .5rem;
+      color: var(--amber);
+    }
+
+    .about-card p { font-size: .95rem; color: var(--ink-soft); }
+
+    /* ── Thread legend ───────────────────────────────── */
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .6rem;
+      margin: 1.5rem 0 2.5rem;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: .3rem;
+      border-radius: 2rem;
+      padding: .25rem .75rem;
+      font-size: .78rem;
+      font-weight: 600;
+      letter-spacing: .02em;
+      white-space: nowrap;
+    }
+
+    .tag-myth    { background: var(--violet-lt); color: var(--violet); }
+    .tag-science { background: var(--blue-lt);   color: var(--blue); }
+    .tag-nature  { background: var(--green-lt);  color: var(--green); }
+    .tag-justice { background: var(--amber-lt);  color: var(--amber); }
+    .tag-poetry  { background: var(--rose-lt);   color: var(--rose); }
+
+    .level-badge {
+      display: inline-block;
+      font-size: .72rem;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: .25rem;
+      padding: .15rem .5rem;
+      color: var(--ink-soft);
+    }
+
+    /* ── Book grid ───────────────────────────────────── */
+    #books h2 { font-size: 1.75rem; margin-bottom: .5rem; color: var(--blue); }
+    #books > .container > p { color: var(--ink-soft); margin-bottom: 1.5rem; }
+
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .5rem;
+      margin-bottom: 2rem;
+    }
+
+    .filter-btn {
+      border: none;
+      border-radius: 2rem;
+      padding: .35rem .9rem;
+      font-size: .85rem;
+      font-family: 'Open Sans', sans-serif;
+      cursor: pointer;
+      transition: opacity .15s, transform .1s;
+      font-weight: 600;
+    }
+    .filter-btn:hover { opacity: .8; }
+    .filter-btn.active { outline: 2px solid var(--ink); outline-offset: 2px; }
+    .filter-btn-all    { background: var(--ink); color: #fff; }
+    .filter-btn-myth   { background: var(--violet-lt); color: var(--violet); }
+    .filter-btn-science{ background: var(--blue-lt);   color: var(--blue); }
+    .filter-btn-nature { background: var(--green-lt);  color: var(--green); }
+    .filter-btn-justice{ background: var(--amber-lt);  color: var(--amber); }
+    .filter-btn-poetry { background: var(--rose-lt);   color: var(--rose); }
+
+    .book-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .book-card {
+      background: #fff;
+      border-radius: .75rem;
+      padding: 1.4rem 1.5rem;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: .75rem;
+      transition: transform .15s, box-shadow .15s;
+    }
+    .book-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.1); }
+    .book-card[hidden] { display: none; }
+
+    .book-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: .5rem;
+    }
+
+    .book-title {
+      font-family: 'Lora', serif;
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1.3;
+    }
+
+    .book-author {
+      font-size: .85rem;
+      color: var(--ink-soft);
+    }
+
+    .book-note {
+      font-size: .875rem;
+      color: var(--ink-soft);
+      font-style: italic;
+    }
+
+    .book-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .4rem;
+      align-items: center;
+    }
+
+    /* ── Reading Along ───────────────────────────────── */
+    #reading-along { background: var(--blue-lt); }
+    #reading-along h2 { font-size: 1.75rem; color: var(--blue); margin-bottom: .75rem; }
+    #reading-along > .container > p { color: var(--ink-soft); margin-bottom: 2rem; max-width: 600px; }
+
+    .form-card {
+      background: #fff;
+      border-radius: .75rem;
+      padding: 2rem;
+      box-shadow: var(--shadow);
+      max-width: 560px;
+    }
+
+    .form-group { margin-bottom: 1.25rem; }
+
+    label {
+      display: block;
+      font-size: .9rem;
+      font-weight: 600;
+      margin-bottom: .4rem;
+      color: var(--ink);
+    }
+
+    input[type="text"],
+    input[type="email"],
+    select,
+    textarea {
+      width: 100%;
+      padding: .65rem .9rem;
+      border: 1.5px solid var(--border);
+      border-radius: .5rem;
+      font-family: 'Open Sans', sans-serif;
+      font-size: .95rem;
+      color: var(--ink);
+      background: var(--cream);
+      transition: border-color .15s;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--blue);
+      background: #fff;
+    }
+
+    textarea { resize: vertical; min-height: 90px; }
+
+    .btn {
+      display: inline-block;
+      padding: .7rem 1.75rem;
+      border: none;
+      border-radius: 2rem;
+      font-family: 'Open Sans', sans-serif;
+      font-size: .95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s, transform .1s;
+      text-decoration: none;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn-primary { background: var(--blue); color: #fff; }
+    .btn-primary:hover { background: #174f8e; }
+    .btn-amber { background: var(--amber); color: #fff; }
+    .btn-amber:hover { background: #a86522; }
+
+    /* ── Book of Knowers ─────────────────────────────── */
+    #knowers h2 { font-size: 1.75rem; color: var(--green); margin-bottom: .75rem; }
+
+    .knowers-intro {
+      max-width: 640px;
+      color: var(--ink-soft);
+      margin-bottom: 2rem;
+    }
+
+    .knowers-placeholder {
+      background: var(--green-lt);
+      border: 2px dashed var(--green);
+      border-radius: .75rem;
+      padding: 2.5rem 2rem;
+      text-align: center;
+      max-width: 640px;
+    }
+
+    .knowers-placeholder .big-icon { font-size: 3rem; margin-bottom: .75rem; }
+    .knowers-placeholder h3 { font-size: 1.2rem; color: var(--green); margin-bottom: .75rem; }
+    .knowers-placeholder p { font-size: .9rem; color: var(--ink-soft); margin-bottom: 1.25rem; }
+
+    .knowers-submissions {
+      margin-top: 2.5rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .submission-card {
+      background: #fff;
+      border-radius: .75rem;
+      padding: 1.25rem;
+      box-shadow: var(--shadow);
+      border-left: 4px solid var(--green);
+    }
+
+    .submission-card .s-title { font-weight: 600; font-size: .95rem; }
+    .submission-card .s-author { font-size: .82rem; color: var(--ink-soft); margin-bottom: .5rem; }
+    .submission-card .s-excerpt { font-size: .88rem; color: var(--ink-soft); font-style: italic; }
+
+    /* ── Contact ─────────────────────────────────────── */
+    #contact { background: var(--amber-lt); }
+    #contact h2 { font-size: 1.75rem; color: var(--amber); margin-bottom: .75rem; }
+    #contact > .container > p { color: var(--ink-soft); margin-bottom: 2rem; max-width: 560px; }
+
+    /* ── Success message ─────────────────────────────── */
+    .form-success {
+      display: none;
+      background: var(--green-lt);
+      border: 1px solid var(--green);
+      border-radius: .5rem;
+      padding: 1rem 1.25rem;
+      color: var(--green);
+      font-weight: 600;
+      margin-top: 1rem;
+    }
+
+    /* ── Footer ──────────────────────────────────────── */
+    footer {
+      background: #1a1a1a;
+      color: #ccc;
+      text-align: center;
+      padding: 2rem 1.5rem;
+      font-size: .875rem;
+    }
+    footer a { color: #aac4e8; }
+
+    /* ── Responsive ──────────────────────────────────── */
+    @media (max-width: 600px) {
+      section { padding: 2.5rem 0; }
+      .book-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<a href="#books" class="skip-link">Skip to book list</a>
+
+<!-- ── HERO ───────────────────────────────────────────── -->
+<header>
+  <p class="hero-eyebrow">A Community Book Club</p>
+  <h1>"How Did We Learn to Read the World?"</h1>
+  <p class="hero-tagline">
+    A safe, joyful space for young readers with intersectional identities —
+    exploring science, mythology, nature, poetry, and justice, together.
+  </p>
+  <nav aria-label="Page sections">
+    <ul class="hero-nav">
+      <li><a href="#about">About</a></li>
+      <li><a href="#books">Book List</a></li>
+      <li><a href="#reading-along">Read Along</a></li>
+      <li><a href="#knowers">Book of Knowers</a></li>
+      <li><a href="#contact">Join</a></li>
+    </ul>
+  </nav>
+</header>
+
+<!-- ── ABOUT ──────────────────────────────────────────── -->
+<section id="about">
+  <div class="container">
+    <h2>About This Club</h2>
+    <p>
+      This club grew from a simple question: <em>who taught you that you belong in the story of knowing?</em>
+      We read books that name many ways of understanding the world — through stars, roots, stories, equations,
+      poems, and protest. Every reader brings a thread. Together, we weave something bigger.
+    </p>
+    <div class="about-grid">
+      <div class="about-card">
+        <h3>Who It's For</h3>
+        <p>Young readers (roughly ages 8–18) who hold multiple, layered identities and want a community that sees all of them.</p>
+      </div>
+      <div class="about-card">
+        <h3>How It Works</h3>
+        <p>Read at your own pace. Show up when you can. Share what the book opened in you — not just what happened in the plot.</p>
+      </div>
+      <div class="about-card">
+        <h3>Our Promise</h3>
+        <p>Your ideas matter here. You do not have to shrink yourself, explain yourself, or perform expertise. You just have to be curious.</p>
+      </div>
+      <div class="about-card">
+        <h3>The Theme</h3>
+        <p>Every book on our list asks — in its own way — how humans and communities have learned to make sense of the world around them.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── BOOKS ──────────────────────────────────────────── -->
+<section id="books">
+  <div class="container">
+    <h2>The Book List</h2>
+    <p>Each book is tagged by <strong>reading level</strong> and <strong>identity thread</strong>. Use the filters to explore.</p>
+
+    <div class="legend" aria-label="Thread color legend">
+      <span class="tag tag-myth">🌍 Mythology &amp; Ancient Worlds</span>
+      <span class="tag tag-science">🔭 Science &amp; Discovery</span>
+      <span class="tag tag-nature">🌿 Nature &amp; Ecology</span>
+      <span class="tag tag-justice">✊ Identity &amp; Justice</span>
+      <span class="tag tag-poetry">✍️ Poetry &amp; Voice</span>
+    </div>
+
+    <div class="filter-bar" role="group" aria-label="Filter by thread">
+      <button class="filter-btn filter-btn-all active"    data-filter="all"    onclick="filterBooks('all',    this)">All Books</button>
+      <button class="filter-btn filter-btn-myth"          data-filter="myth"   onclick="filterBooks('myth',   this)">🌍 Mythology</button>
+      <button class="filter-btn filter-btn-science"       data-filter="science"onclick="filterBooks('science',this)">🔭 Science</button>
+      <button class="filter-btn filter-btn-nature"        data-filter="nature" onclick="filterBooks('nature', this)">🌿 Nature</button>
+      <button class="filter-btn filter-btn-justice"       data-filter="justice"onclick="filterBooks('justice',this)">✊ Identity &amp; Justice</button>
+      <button class="filter-btn filter-btn-poetry"        data-filter="poetry" onclick="filterBooks('poetry', this)">✍️ Poetry</button>
+    </div>
+
+    <div class="book-grid" id="bookGrid">
+
+      <article class="book-card" data-threads="myth justice">
+        <div class="book-header">
+          <div>
+            <div class="book-title">The Kane Chronicles</div>
+            <div class="book-author">Rick Riordan</div>
+          </div>
+          <span class="level-badge">Middle Grade</span>
+        </div>
+        <p class="book-note">Egyptian mythology through Black and mixed-race siblings — adventure that centers a culture often erased from its own story.</p>
+        <div class="book-tags">
+          <span class="tag tag-myth">🌍 Mythology</span>
+          <span class="tag tag-justice">✊ Identity &amp; Justice</span>
+        </div>
+      </article>
+
+      <article class="book-card" data-threads="myth">
+        <div class="book-header">
+          <div>
+            <div class="book-title">Norse Mythology</div>
+            <div class="book-author">Neil Gaiman</div>
+          </div>
+          <span class="level-badge">All Ages</span>
+        </div>
+        <p class="book-note">A master storyteller retells the Norse gods — a vivid reminder that every culture has its own framework for explaining the cosmos.</p>
+        <div class="book-tags">
+          <span class="tag tag-myth">🌍 Mythology</span>
+        </div>
+      </article>
+
+      <article class="book-card" data-threads="myth">
+        <div class="book-header">
+          <div>
+            <div class="book-title">D'Aulaires' Book of Greek Myths</div>
+            <div class="book-author">Ingri &amp; Edgar Parin d'Aulaire</div>
+          </div>
+          <span class="level-badge">Early Reader</span>
+        </div>
+        <p class="book-note">The illustrated classic. Lavish paintings make Greek myth feel alive and immediate — wonderful for all ages to read together.</p>
+        <div class="book-tags">
+          <span class="tag tag-myth">🌍 Mythology</span>
+        </div>
+      </article>
+
+      <article class="book-card" data-threads="science">
+        <div class="book-header">
+          <div>
+            <div class="book-title">Astrophysics for People in a Hurry</div>
+            <div class="book-author">Neil deGrasse Tyson</div>
+          </div>
+          <span class="level-badge">Young Adult +</span>
+        </div>
+        <p class="book-note">A Black astrophysicist invites everyone to the cosmos — proof that wondering about the universe belongs to all of us.</p>
+        <div class="book-tags">
+          <span class="tag tag-science">🔭 Science</span>
+        </div>
+      </article>
+
+      <article class="book-card" data-threads="science justice">
+        <div class="book-header">
+          <div>
+            <div class="book-title">Hidden Figures — Young Readers' Edition</div>
+            <div class="book-author">Margot Lee Shetterly</div>
+          </div>
+          <span class="level-badge">Middle Grade</span>
+        </div>
+        <p class="book-note">The true story of Black women mathematicians who calculated the paths to space — hidden no longer.</p>
+        <div class="book-tags">
+          <span class="tag tag-science">🔭 Science</span>
+          <span class="tag tag-justice">✊ Identity &amp; Justice</span>
+        </div>
+      </article>
+
+      <article class="book-card" data-threads="science nature">
+        <div class="book-header">
+          <div>
+            <div class="book-title">The Story of Earth</div>
+            <div class="book-author">Robert Hazen</div>
+          </div>
+          <span class="level-badge">Young Adult +</span>
+        </div>
+        <p class="book-note">Earth's four-billion-year biography — minerals, oceans, atmosphere, life. A deep reminder that we are made of ancient stories.</p>
+        <div class="book-tags">
+          <span class="tag tag-science">🔭 Science</span>
+          <span class="tag tag-nature">🌿 Nature</span>
+        </div>
+      </article>
+
+      <article class="book-card" data-threads="science">
+        <div class="book-header">
+          <div>
+            <div class="book-title">Longitude</div>
+            <div class="book-author">Dava Sobel</div>
+          </div>
+          <span class="level-badge">Young Adult +</span>
+        </div>
+        <p class="book-note">The gripping story of how humanity learned to locate itself on the open ocean — a clockmaker vs. the scientific establishment.</p>
+        <div class="book-tags">
+          <span class="tag tag-science">🔭 Science</span>
+        </div>
+      </article>
+
+      <article class="book-card" data-threads="nature justice">
+        <div class="book-header">
+          <div>
+            <div class="book-title">Braiding Sweetgrass</div>
+            <div class="book-author">Robin Wall Kimmerer</div>
+          </div>
+          <span class="level-badge">Young Adult +</span>
+        </div>
+        <p class="book-note">A Potawatomi botanist weaves Indigenous plant knowledge with Western science — a book that redefines what counts as knowing.</p>
+        <div class="book-tags">
+          <span class="tag tag-nature">🌿 Nature</span>
+          <span class="tag tag-justice">✊ Identity &amp; Justice</span>
+        </div>
+      </article>
+
+      <article class="book-card" data-threads="nature">
+        <div class="book-header">
+          <div>
+            <div class="book-title">The Curious World of Bugs</div>
+            <div class="book-author">Daniel Marlos</div>
+          </div>
+          <span class="level-badge">Middle Grade</span>
+        </div>
+        <p class="book-note">An entomologist's love letter to the most abundant life on Earth — teaches careful observation and delight in the overlooked.</p>
+        <div class="book-tags">
+          <span class="tag tag-nature">🌿 Nature</span>
+        </div>
+      </article>
+
+      <article class="book-card" data-threads="nature">
+        <div class="book-header">
+          <div>
+            <div class="book-title">My Side of the Mountain</div>
+            <div class="book-author">Jean Craighead George</div>
+          </div>
+          <span class="level-badge">Middle Grade</span>
+        </div>
+        <p class="book-note">A boy lives alone in the Catskills for a year, learning from trees, animals, and seasons. Independence and ecological literacy, page by page.</p>
+        <div class="book-tags">
+          <span class="tag tag-nature">🌿 Nature</span>
+        </div>
+      </article>
+
+      <article class="book-card" data-threads="nature justice">
+        <div class="book-header">
+          <div>
+            <div class="book-title">The Wild Robot</div>
+            <div class="book-author">Peter Brown</div>
+          </div>
+          <span class="level-badge">Middle Grade</span>
+        </div>
+        <p class="book-note">A robot learns to survive in the wild and raises an orphaned gosling. Asks quietly: what does it mean to belong, to adapt, to be "natural"?</p>
+        <div class="book-tags">
+          <span class="tag tag-nature">🌿 Nature</span>
+          <span class="tag tag-justice">✊ Identity &amp; Justice</span>
+        </div>
+      </article>
+
+      <article class="book-card" data-threads="nature poetry">
+        <div class="book-header">
+          <div>
+            <div class="book-title">Devotions (selected poems)</div>
+            <div class="book-author">Mary Oliver</div>
+          </div>
+          <span class="level-badge">All Ages</span>
+        </div>
+        <p class="book-note">Poems that slow you down enough to see a grasshopper, a black snake, a morning field. Oliver teaches that attention is itself a form of love.</p>
+        <div class="book-tags">
+          <span class="tag tag-nature">🌿 Nature</span>
+          <span class="tag tag-poetry">✍️ Poetry</span>
+        </div>
+      </article>
+
+      <article class="book-card" data-threads="myth justice">
+        <div class="book-header">
+          <div>
+            <div class="book-title">When the Sea Turned to Silver</div>
+            <div class="book-author">Grace Lin</div>
+          </div>
+          <span class="level-badge">Middle Grade</span>
+        </div>
+        <p class="book-note">Chinese mythology, folklore, and a girl's quest to save her grandmother — a story that insists Asian stories are universal stories.</p>
+        <div class="book-tags">
+          <span class="tag tag-myth">🌍 Mythology</span>
+          <span class="tag tag-justice">✊ Identity &amp; Justice</span>
+        </div>
+      </article>
+
+      <article class="book-card" data-threads="poetry justice">
+        <div class="book-header">
+          <div>
+            <div class="book-title">Out of Wonder</div>
+            <div class="book-author">Kwame Alexander</div>
+          </div>
+          <span class="level-badge">Middle Grade</span>
+        </div>
+        <p class="book-note">Poems in praise of poets — Alexander and two co-authors celebrate twenty poets from around the world. Every page is an invitation to write.</p>
+        <div class="book-tags">
+          <span class="tag tag-poetry">✍️ Poetry</span>
+          <span class="tag tag-justice">✊ Identity &amp; Justice</span>
+        </div>
+      </article>
+
+      <article class="book-card" data-threads="justice">
+        <div class="book-header">
+          <div>
+            <div class="book-title">Stamped: Racism, Antiracism, and You</div>
+            <div class="book-author">Jason Reynolds &amp; Ibram X. Kendi</div>
+          </div>
+          <span class="level-badge">Young Adult</span>
+        </div>
+        <p class="book-note">A remixed history of racist and antiracist ideas in America — honest, urgent, and written directly to young readers who are ready for truth.</p>
+        <div class="book-tags">
+          <span class="tag tag-justice">✊ Identity &amp; Justice</span>
+        </div>
+      </article>
+
+      <article class="book-card" data-threads="justice">
+        <div class="book-header">
+          <div>
+            <div class="book-title">The Witch Boy</div>
+            <div class="book-author">Molly Knox Ostertag</div>
+          </div>
+          <span class="level-badge">Middle Grade</span>
+        </div>
+        <p class="book-note">A graphic novel about a boy in a family of witches who wants to do magic, not shapeshifting. Gentle, brave, and deeply affirming of gender nonconformity.</p>
+        <div class="book-tags">
+          <span class="tag tag-justice">✊ Identity &amp; Justice</span>
+        </div>
+      </article>
+
+      <article class="book-card" data-threads="justice">
+        <div class="book-header">
+          <div>
+            <div class="book-title">Kin</div>
+            <div class="book-author">Tayari Jones</div>
+          </div>
+          <span class="level-badge">Young Adult +</span>
+        </div>
+        <p class="book-note">A story about Black family, loyalty, and the meaning of belonging — Jones writes with warmth and moral complexity about the ties that bind and stretch.</p>
+        <div class="book-tags">
+          <span class="tag tag-justice">✊ Identity &amp; Justice</span>
+        </div>
+      </article>
+
+      <article class="book-card" data-threads="science justice">
+        <div class="book-header">
+          <div>
+            <div class="book-title">Benjamin Banneker: Surveyor, Astronomer, Publisher, Patriot</div>
+            <div class="book-author">Charles Cerami</div>
+          </div>
+          <span class="level-badge">Middle Grade</span>
+        </div>
+        <p class="book-note">The biography of a free Black man in 18th-century America who taught himself astronomy and surveyed the nation's capital. A knower the history books overlooked.</p>
+        <div class="book-tags">
+          <span class="tag tag-science">🔭 Science</span>
+          <span class="tag tag-justice">✊ Identity &amp; Justice</span>
+        </div>
+      </article>
+
+      <article class="book-card" data-threads="science myth">
+        <div class="book-header">
+          <div>
+            <div class="book-title">Astrological Ages and the Galactic Center</div>
+            <div class="book-author">Heather Ensworth</div>
+          </div>
+          <span class="level-badge">Adult</span>
+        </div>
+        <p class="book-note">Ancient astrological wisdom meets modern cosmology — explores what the sky has meant to human cultures across time and what it might mean now.</p>
+        <div class="book-tags">
+          <span class="tag tag-science">🔭 Science</span>
+          <span class="tag tag-myth">🌍 Mythology</span>
+        </div>
+      </article>
+
+      <article class="book-card" data-threads="science nature">
+        <div class="book-header">
+          <div>
+            <div class="book-title">365 Starry Nights</div>
+            <div class="book-author">Chet Raymo</div>
+          </div>
+          <span class="level-badge">All Ages</span>
+        </div>
+        <p class="book-note">A guide to the naked-eye sky for every night of the year. Pairs beautifully with <em>Devotions</em> — one teaches you to see the ground, the other the sky.</p>
+        <div class="book-tags">
+          <span class="tag tag-science">🔭 Science</span>
+          <span class="tag tag-nature">🌿 Nature</span>
+        </div>
+      </article>
+
+    </div><!-- /book-grid -->
+  </div>
+</section>
+
+<!-- ── READING ALONG ───────────────────────────────────── -->
+<section id="reading-along">
+  <div class="container">
+    <h2>Reading Along?</h2>
+    <p>Let us know which book you're reading — it helps us know who's in the room, even when we're apart.</p>
+    <div class="form-card">
+      <!-- Replace ACTION with your Formspree endpoint, e.g. https://formspree.io/f/XXXXXXXX -->
+      <form action="https://formspree.io/f/REPLACE_WITH_YOUR_ID" method="POST" onsubmit="showSuccess(this)">
+        <input type="hidden" name="_subject" value="Reading Along Signup">
+        <div class="form-group">
+          <label for="ra-name">Your name (or a reading name — anything you'd like us to call you)</label>
+          <input type="text" id="ra-name" name="name" placeholder="e.g. StargazerSam" required>
+        </div>
+        <div class="form-group">
+          <label for="ra-book">Which book are you reading?</label>
+          <select id="ra-book" name="book" required>
+            <option value="">— choose one —</option>
+            <option>The Kane Chronicles (Riordan)</option>
+            <option>Norse Mythology (Gaiman)</option>
+            <option>D'Aulaires' Book of Greek Myths</option>
+            <option>Astrophysics for People in a Hurry (Tyson)</option>
+            <option>Hidden Figures — Young Readers' Edition (Shetterly)</option>
+            <option>The Story of Earth (Hazen)</option>
+            <option>Longitude (Sobel)</option>
+            <option>Braiding Sweetgrass (Kimmerer)</option>
+            <option>The Curious World of Bugs (Marlos)</option>
+            <option>My Side of the Mountain (George)</option>
+            <option>The Wild Robot (Brown)</option>
+            <option>Devotions — Mary Oliver</option>
+            <option>When the Sea Turned to Silver (Grace Lin)</option>
+            <option>Out of Wonder (Kwame Alexander)</option>
+            <option>Stamped: Racism, Antiracism, and You (Reynolds &amp; Kendi)</option>
+            <option>The Witch Boy (Ostertag)</option>
+            <option>Kin (Tayari Jones)</option>
+            <option>Benjamin Banneker (Cerami)</option>
+            <option>Astrological Ages and the Galactic Center (Ensworth)</option>
+            <option>365 Starry Nights (Raymo)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="ra-thought">One thing you're curious about (optional)</label>
+          <textarea id="ra-thought" name="thought" placeholder="A question, a wonder, a line that caught you…"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">I'm Reading Along</button>
+        <div class="form-success" id="ra-success">Thank you! We're glad you're here.</div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ── BOOK OF KNOWERS ─────────────────────────────────── -->
+<section id="knowers">
+  <div class="container">
+    <h2>The Book of Knowers</h2>
+    <p class="knowers-intro">
+      Every reader is also a knower. This is a place for kids in the club to share their own writing —
+      a poem, an observation, a question, a reflection — collected into our own living book.
+      <strong>Coming soon.</strong>
+    </p>
+
+    <div class="knowers-placeholder">
+      <div class="big-icon">📖</div>
+      <h3>This page is still being written — by you.</h3>
+      <p>
+        When the club gets going, kids will be able to submit short pieces of writing here.
+        A poem about a star. A field note about a bug. A question the book left open.
+        Anything that shows how <em>you</em> read the world.
+      </p>
+      <a href="#contact" class="btn btn-amber">Want to be an early contributor? Say hello →</a>
+    </div>
+
+    <!-- Sample placeholder cards — remove when real submissions arrive -->
+    <div class="knowers-submissions" aria-label="Sample submissions (placeholders)">
+      <div class="submission-card">
+        <div class="s-title">"What the Sweetgrass Said"</div>
+        <div class="s-author">— A future knower, age 11</div>
+        <div class="s-excerpt">Your poem could live here.</div>
+      </div>
+      <div class="submission-card">
+        <div class="s-title">"Field Notes: Ants on the Back Step"</div>
+        <div class="s-author">— A future knower, age 9</div>
+        <div class="s-excerpt">Your observation could live here.</div>
+      </div>
+      <div class="submission-card">
+        <div class="s-title">"The Question Benjamin Banneker Asked"</div>
+        <div class="s-author">— A future knower, age 13</div>
+        <div class="s-excerpt">Your reflection could live here.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CONTACT / JOIN ─────────────────────────────────── -->
+<section id="contact">
+  <div class="container">
+    <h2>Want to Join?</h2>
+    <p>
+      Whether you're a kid, a caregiver, an educator, or just curious — reach out.
+      We'll let you know when gatherings are happening and how to get involved.
+    </p>
+    <div class="form-card">
+      <!-- Replace ACTION with your Formspree endpoint -->
+      <form action="https://formspree.io/f/REPLACE_WITH_YOUR_ID" method="POST" onsubmit="showSuccess(this)">
+        <input type="hidden" name="_subject" value="Book Club Join Request">
+        <div class="form-group">
+          <label for="c-name">Name</label>
+          <input type="text" id="c-name" name="name" placeholder="Your name" required>
+        </div>
+        <div class="form-group">
+          <label for="c-email">Email</label>
+          <input type="email" id="c-email" name="email" placeholder="your@email.com" required>
+        </div>
+        <div class="form-group">
+          <label for="c-role">I'm joining as…</label>
+          <select id="c-role" name="role">
+            <option>A young reader (or reading with an adult)</option>
+            <option>A parent / caregiver</option>
+            <option>An educator or librarian</option>
+            <option>Just curious</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="c-message">Anything you'd like us to know?</label>
+          <textarea id="c-message" name="message" placeholder="Optional — a question, an identity thread you carry, a book you love…"></textarea>
+        </div>
+        <button type="submit" class="btn btn-amber">Send</button>
+        <div class="form-success" id="c-success">Got it! We'll be in touch.</div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ─────────────────────────────────────────── -->
+<footer>
+  <p>
+    "How Did We Learn to Read the World?" &nbsp;·&nbsp;
+    A book club for young readers with intersectional identities<br>
+    <a href="index.html">← Marlann Patterson's main site</a>
+  </p>
+</footer>
+
+<script>
+  /* ── Filter books by thread ── */
+  function filterBooks(thread, btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('#bookGrid .book-card').forEach(card => {
+      if (thread === 'all') {
+        card.hidden = false;
+      } else {
+        const threads = card.dataset.threads || '';
+        card.hidden = !threads.split(' ').includes(thread);
+      }
+    });
+  }
+
+  /* ── Show inline success message on form submit ── */
+  function showSuccess(form) {
+    // Let Formspree handle actual submission; show optimistic success UI
+    setTimeout(() => {
+      const successId = form.id === 'ra-form' ? 'ra-success' : null;
+      // find the .form-success sibling
+      const msg = form.querySelector('.form-success');
+      if (msg) msg.style.display = 'block';
+    }, 300);
+  }
+</script>
+
+</body>
+</html>
