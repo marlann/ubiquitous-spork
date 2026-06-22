@@ -56,6 +56,18 @@ before submitting.
 - For schema changes, include a migration and update any affected documentation.
 - Add or update tests where they exist.
 
+## License headers in source files
+
+Every source file you add should carry a short copyright and SPDX header.
+Copy-paste templates for SQL, Python, JavaScript/TypeScript, HTML, CSS, and
+shell are in [`docs/license-headers.md`](./docs/license-headers.md). Data
+files (CSV, JSON, YAML) use CC BY-NC-SA 4.0, not AGPL-3.0 — the same doc
+explains how to mark those.
+
+If a file you are editing is missing a header, please add one as part of your
+change. The `NOTICE` file must also be updated if you are adding a new
+third-party data source.
+
 ## Getting started
 
 1. Fork the repository and create a branch for your change.

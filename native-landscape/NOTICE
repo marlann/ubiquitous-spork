@@ -1,0 +1,42 @@
+Native Landscape
+Copyright (C) 2026 [Your Name or Organization]
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero
+General Public License (file: LICENSE) for more details.
+
+The plant catalog, ecological-relationship data, and related data assets
+included in or produced by this project are licensed separately under the
+Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International
+license. See DATA-LICENSE.md for details.
+
+-------------------------------------------------------------------------------
+Third-party software and data
+-------------------------------------------------------------------------------
+
+This project may incorporate data from the following sources. Each is used
+under its own terms; see DATA-LICENSE.md § "Provenance of incorporated data"
+for per-source license details.
+
+  USDA PLANTS Database
+    https://plants.usda.gov/
+    U.S. Government work, not subject to domestic copyright protection.
+
+  iNaturalist observations
+    https://www.inaturalist.org/
+    Individual observations carry per-record Creative Commons licenses;
+    check the `data_source` field on each record before redistribution.
+
+  Xerces Society for Invertebrate Conservation (host-plant lists)
+    https://xerces.org/
+    Copyrighted. Factual data may be incorporated; verbatim text may not.
+    Verify terms before redistributing any derived dataset.
+
+As additional third-party components are incorporated, this file must be
+updated to reflect them. Do not remove or alter existing attribution entries.
