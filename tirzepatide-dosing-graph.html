@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tirzepatide Dosing &amp; Weight Journey</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #f0f4ff;
+      margin-bottom: 4px;
+      letter-spacing: 0.02em;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 0.85rem;
+      color: #94a3b8;
+      margin-bottom: 28px;
+    }
+
+    .stat-row {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+
+    .stat-card {
+      background: #1e2230;
+      border: 1px solid #2d3348;
+      border-radius: 12px;
+      padding: 14px 22px;
+      text-align: center;
+      min-width: 130px;
+    }
+
+    .stat-card .label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #64748b;
+      margin-bottom: 6px;
+    }
+
+    .stat-card .value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #a78bfa;
+    }
+
+    .stat-card .sub {
+      font-size: 0.72rem;
+      color: #94a3b8;
+      margin-top: 2px;
+    }
+
+    .chart-wrapper {
+      background: #1e2230;
+      border: 1px solid #2d3348;
+      border-radius: 16px;
+      padding: 28px 24px 20px;
+      max-width: 960px;
+      margin: 0 auto 28px;
+      position: relative;
+    }
+
+    canvas {
+      width: 100% !important;
+    }
+
+    .legend-section {
+      max-width: 960px;
+      margin: 0 auto 28px;
+    }
+
+    .legend-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #64748b;
+      margin-bottom: 12px;
+    }
+
+    .events-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 10px;
+    }
+
+    .event-card {
+      background: #1e2230;
+      border-left: 3px solid #6366f1;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.8rem;
+    }
+
+    .event-card.reduction { border-left-color: #f59e0b; }
+    .event-card.adverse   { border-left-color: #ef4444; }
+    .event-card.stable    { border-left-color: #10b981; }
+
+    .event-date {
+      font-weight: 700;
+      color: #c4b5fd;
+      margin-bottom: 2px;
+      font-size: 0.75rem;
+    }
+
+    .event-card.reduction .event-date { color: #fcd34d; }
+    .event-card.adverse   .event-date { color: #fca5a5; }
+    .event-card.stable    .event-date { color: #6ee7b7; }
+
+    .event-note { color: #94a3b8; line-height: 1.5; }
+  </style>
+</head>
+<body>
+
+  <h1>Tirzepatide Dosing &amp; Weight Journey</h1>
+  <p class="subtitle">Started 03/26/25 · Tracking through 06/26/26</p>
+
+  <div class="stat-row">
+    <div class="stat-card">
+      <div class="label">Starting Weight</div>
+      <div class="value">265 lbs</div>
+      <div class="sub">10/29/24</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Lowest Recorded</div>
+      <div class="value">164 lbs</div>
+      <div class="sub">03/21/26</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Total Lost</div>
+      <div class="value">101 lbs</div>
+      <div class="sub">−38% body weight</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Current Weight</div>
+      <div class="value">175 lbs</div>
+      <div class="sub">06/26/26</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Current Dose</div>
+      <div class="value">5 mg</div>
+      <div class="sub">Titration phase</div>
+    </div>
+  </div>
+
+  <div class="chart-wrapper">
+    <canvas id="weightChart" height="380"></canvas>
+  </div>
+
+  <div class="legend-section">
+    <div class="legend-title">Key Events &amp; Notes</div>
+    <div class="events-grid">
+
+      <div class="event-card">
+        <div class="event-date">03/26/25 — Tirzepatide started</div>
+        <div class="event-note">2.5 mg initial dose per standard titration schedule.</div>
+      </div>
+
+      <div class="event-card reduction">
+        <div class="event-date">01/17/26 — Max dose 15 mg (100 units)</div>
+        <div class="event-note">Severe appetite &amp; thirst suppression — difficult to drink water. Triggered dose reduction regimen.</div>
+      </div>
+
+      <div class="event-card reduction">
+        <div class="event-date">01/24/26 — Reduced to 10–12 mg (80 units)</div>
+        <div class="event-note">No change yet in appetite or thirst suppression.</div>
+      </div>
+
+      <div class="event-card reduction">
+        <div class="event-date">01/31/26 — Reduced to 5–7.5 mg (40 units)</div>
+        <div class="event-note">Continued dose taper.</div>
+      </div>
+
+      <div class="event-card adverse">
+        <div class="event-date">02/21/26 — Allergic-like reactions</div>
+        <div class="event-note">Intermittent reactions to previously tolerated foods (dolmas, kefir, BLT). Dose 4–5 mg (30 units). Appetite near normal; ~1,500 cal/day; fluids normal.</div>
+      </div>
+
+      <div class="event-card stable">
+        <div class="event-date">02/28/26 — Weight possibly stabilizing</div>
+        <div class="event-note">5 mg (33 units). Home scale: ~169 lbs.</div>
+      </div>
+
+      <div class="event-card stable">
+        <div class="event-date">03/08/26 — Hunger &amp; thirst normalizing</div>
+        <div class="event-note">Staying the course at 5 mg.</div>
+      </div>
+
+      <div class="event-card stable">
+        <div class="event-date">06/10/26 — Slight rebound to 173 lbs</div>
+        <div class="event-note">5 mg/week. Starting calorie tracking; considering slight dose increase.</div>
+      </div>
+
+      <div class="event-card stable">
+        <div class="event-date">06/26/26 — 175 lbs</div>
+        <div class="event-note">On titration dosage.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const weightData = [
+      { x: '2024-10-29', y: 265 },
+      { x: '2025-06-24', y: 245 },
+      { x: '2025-07-29', y: 234 },
+      { x: '2025-09-30', y: 215 },
+      { x: '2026-01-08', y: 180 },
+      { x: '2026-01-22', y: 178 },
+      { x: '2026-02-28', y: 169 },
+      { x: '2026-03-21', y: 164 },
+      { x: '2026-06-10', y: 173 },
+      { x: '2026-06-26', y: 175 },
+    ];
+
+    // Dose events for vertical annotation lines
+    const doseEvents = [
+      { date: '2025-03-26', label: 'Start 2.5 mg',     color: '#818cf8' },
+      { date: '2026-01-17', label: '15 mg (max)',       color: '#f59e0b' },
+      { date: '2026-01-24', label: '↓ 10–12 mg',       color: '#fbbf24' },
+      { date: '2026-01-31', label: '↓ 5–7.5 mg',       color: '#fcd34d' },
+      { date: '2026-02-21', label: '↓ 4–5 mg',         color: '#ef4444' },
+      { date: '2026-02-28', label: '5 mg stable',      color: '#10b981' },
+    ];
+
+    // Build vertical line plugin
+    const verticalLinesPlugin = {
+      id: 'verticalLines',
+      afterDraw(chart) {
+        const { ctx, scales: { x, y } } = chart;
+        doseEvents.forEach(ev => {
+          const xPos = x.getPixelForValue(new Date(ev.date).getTime());
+          if (xPos < x.left || xPos > x.right) return;
+
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(xPos, y.top);
+          ctx.lineTo(xPos, y.bottom);
+          ctx.strokeStyle = ev.color + 'aa';
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([4, 4]);
+          ctx.stroke();
+
+          // Rotated label
+          ctx.translate(xPos - 5, y.top + 8);
+          ctx.rotate(-Math.PI / 2);
+          ctx.fillStyle = ev.color;
+          ctx.font = '10px Segoe UI, system-ui, sans-serif';
+          ctx.fillText(ev.label, 0, 0);
+          ctx.restore();
+        });
+      }
+    };
+
+    const ctx = document.getElementById('weightChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      plugins: [verticalLinesPlugin],
+      data: {
+        datasets: [
+          {
+            label: 'Weight (lbs)',
+            data: weightData,
+            borderColor: '#a78bfa',
+            backgroundColor: 'rgba(167,139,250,0.12)',
+            pointBackgroundColor: '#a78bfa',
+            pointBorderColor: '#1e2230',
+            pointBorderWidth: 2,
+            pointRadius: 6,
+            pointHoverRadius: 9,
+            tension: 0.35,
+            fill: true,
+            borderWidth: 2.5,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: {
+            labels: { color: '#94a3b8', font: { size: 12 } }
+          },
+          tooltip: {
+            backgroundColor: '#1e2230',
+            borderColor: '#3d4460',
+            borderWidth: 1,
+            titleColor: '#e2e8f0',
+            bodyColor: '#94a3b8',
+            callbacks: {
+              label(ctx) {
+                return ` ${ctx.parsed.y} lbs`;
+              },
+              afterLabel(ctx) {
+                const start = 265;
+                const current = ctx.parsed.y;
+                const lost = start - current;
+                const pct = ((lost / start) * 100).toFixed(1);
+                return ` −${lost} lbs from start (${pct}%)`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            type: 'time',
+            time: { unit: 'month', displayFormats: { month: 'MMM yy' } },
+            grid: { color: '#2d3348' },
+            ticks: { color: '#64748b', maxRotation: 45 }
+          },
+          y: {
+            min: 140,
+            max: 280,
+            grid: { color: '#2d3348' },
+            ticks: {
+              color: '#64748b',
+              callback: v => v + ' lbs'
+            },
+            title: { display: true, text: 'Weight (lbs)', color: '#64748b', font: { size: 11 } }
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
