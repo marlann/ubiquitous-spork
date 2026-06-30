@@ -404,6 +404,62 @@
       padding-top: .25rem;
       font-family: 'Open Sans', sans-serif;
     }
+    /* ── Sort bar ────────────────────────────────────── */
+    .sort-bar {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: .5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .sort-label {
+      font-size: .85rem;
+      font-weight: 600;
+      color: var(--ink-soft);
+      margin-right: .25rem;
+    }
+
+    .sort-btn {
+      border: 1.5px solid var(--border);
+      border-radius: 2rem;
+      padding: .3rem .85rem;
+      font-size: .82rem;
+      font-family: 'Open Sans', sans-serif;
+      cursor: pointer;
+      background: #fff;
+      color: var(--ink-soft);
+      font-weight: 600;
+      transition: background .15s, color .15s, border-color .15s;
+    }
+    .sort-btn:hover { border-color: var(--ink); color: var(--ink); }
+    .sort-btn.active {
+      background: var(--ink);
+      color: #fff;
+      border-color: var(--ink);
+    }
+
+    /* ── Order badge ─────────────────────────────────── */
+    .order-badge {
+      display: inline-block;
+      font-size: .68rem;
+      font-weight: 700;
+      letter-spacing: .06em;
+      background: var(--blue-lt);
+      color: var(--blue);
+      border-radius: .25rem;
+      padding: .12rem .45rem;
+      white-space: nowrap;
+    }
+
+    .badge-stack {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: .3rem;
+      flex-shrink: 0;
+    }
+
     /* ── Responsive ──────────────────────────────────── */
     @media (max-width: 600px) {
       section { padding: 2.5rem 0; }
@@ -487,9 +543,17 @@
       <button class="filter-btn filter-btn-poetry"        data-filter="poetry" onclick="filterBooks('poetry', this)">✍️ Poetry</button>
     </div>
 
+    <div class="sort-bar" role="group" aria-label="Sort books">
+      <span class="sort-label">Sort:</span>
+      <button class="sort-btn active" onclick="sortBooks('order', this)">Club Order</button>
+      <button class="sort-btn" onclick="sortBooks('author', this)">Author A→Z</button>
+      <button class="sort-btn" onclick="sortBooks('year-asc', this)">Year ↑ Oldest</button>
+      <button class="sort-btn" onclick="sortBooks('year-desc', this)">Year ↓ Newest</button>
+    </div>
+
     <div class="book-grid" id="bookGrid">
 
-      <article class="book-card" data-threads="myth justice">
+      <article class="book-card" data-threads="myth justice" data-order="1" data-year="2010" data-author-last="Riordan">
         <div class="book-header">
           <div>
             <div class="book-title">The Kane Chronicles</div>
@@ -506,7 +570,7 @@
         <div class="book-isbn">ISBN 9781368013581 · Book 1: The Red Pyramid</div>
       </article>
 
-      <article class="book-card" data-threads="myth">
+      <article class="book-card" data-threads="myth" data-order="2" data-year="2017" data-author-last="Gaiman">
         <div class="book-header">
           <div>
             <div class="book-title">Norse Mythology</div>
@@ -522,7 +586,7 @@
         <div class="book-isbn">ISBN 9780393356182</div>
       </article>
 
-      <article class="book-card" data-threads="myth">
+      <article class="book-card" data-threads="myth" data-order="18" data-year="1988" data-author-last="Hamilton">
         <div class="book-header">
           <div>
             <div class="book-title">In the Beginning: Creation Stories from Around the World</div>
@@ -538,7 +602,7 @@
         <div class="book-isbn">ISBN 9780152387426</div>
       </article>
 
-      <article class="book-card" data-threads="myth">
+      <article class="book-card" data-threads="myth" data-order="3" data-year="1962" data-author-last="D'Aulaire">
         <div class="book-header">
           <div>
             <div class="book-title">D'Aulaires' Book of Greek Myths</div>
@@ -554,7 +618,7 @@
         <div class="book-isbn">ISBN 9780440406945</div>
       </article>
 
-      <article class="book-card" data-threads="science">
+      <article class="book-card" data-threads="science" data-order="4" data-year="2017" data-author-last="Tyson">
         <div class="book-header">
           <div>
             <div class="book-title">Astrophysics for People in a Hurry</div>
@@ -570,7 +634,7 @@
         <div class="book-isbn">ISBN 9780393609394</div>
       </article>
 
-      <article class="book-card" data-threads="science justice">
+      <article class="book-card" data-threads="science justice" data-order="5" data-year="2016" data-author-last="Shetterly">
         <div class="book-header">
           <div>
             <div class="book-title">Hidden Figures — Young Readers' Edition</div>
@@ -586,7 +650,7 @@
         <div class="book-isbn">ISBN 9780062662378</div>
       </article>
 
-      <article class="book-card" data-threads="science nature">
+      <article class="book-card" data-threads="science nature" data-order="6" data-year="2012" data-author-last="Hazen">
         <div class="book-header">
           <div>
             <div class="book-title">The Story of Earth</div>
@@ -603,7 +667,7 @@
         <div class="book-isbn">ISBN 9780143123644</div>
       </article>
 
-      <article class="book-card" data-threads="science">
+      <article class="book-card" data-threads="science" data-order="7" data-year="1995" data-author-last="Sobel">
         <div class="book-header">
           <div>
             <div class="book-title">Longitude</div>
@@ -619,7 +683,7 @@
         <div class="book-isbn">ISBN 9780802715296</div>
       </article>
 
-      <article class="book-card" data-threads="nature justice">
+      <article class="book-card" data-threads="nature justice" data-order="8" data-year="2013" data-author-last="Kimmerer">
         <div class="book-header">
           <div>
             <div class="book-title">Braiding Sweetgrass</div>
@@ -636,7 +700,7 @@
         <div class="book-isbn">ISBN 9781571313560</div>
       </article>
 
-      <article class="book-card" data-threads="nature">
+      <article class="book-card" data-threads="nature" data-order="9" data-year="2010" data-author-last="Marlos">
         <div class="book-header">
           <div>
             <div class="book-title">The Curious World of Bugs</div>
@@ -651,7 +715,7 @@
         <div class="book-isbn">ISBN 9780399536137</div>
       </article>
 
-      <article class="book-card" data-threads="nature">
+      <article class="book-card" data-threads="nature" data-order="" data-year="1959" data-author-last="George">
         <div class="book-header">
           <div>
             <div class="book-title">My Side of the Mountain</div>
@@ -667,7 +731,7 @@
         <div class="book-isbn">ISBN 9780142401118</div>
       </article>
 
-      <article class="book-card" data-threads="nature justice">
+      <article class="book-card" data-threads="nature justice" data-order="10" data-year="2016" data-author-last="Brown">
         <div class="book-header">
           <div>
             <div class="book-title">The Wild Robot</div>
@@ -684,7 +748,7 @@
         <div class="book-isbn">ISBN 9780316581097</div>
       </article>
 
-      <article class="book-card" data-threads="nature poetry">
+      <article class="book-card" data-threads="nature poetry" data-order="11" data-year="2017" data-author-last="Oliver">
         <div class="book-header">
           <div>
             <div class="book-title">Devotions (selected poems)</div>
@@ -701,7 +765,7 @@
         <div class="book-isbn">ISBN 9780399563263</div>
       </article>
 
-      <article class="book-card" data-threads="myth justice">
+      <article class="book-card" data-threads="myth justice" data-order="12" data-year="2016" data-author-last="Lin">
         <div class="book-header">
           <div>
             <div class="book-title">When the Sea Turned to Silver</div>
@@ -718,7 +782,7 @@
         <div class="book-isbn">ISBN 9780316125949</div>
       </article>
 
-      <article class="book-card" data-threads="poetry justice">
+      <article class="book-card" data-threads="poetry justice" data-order="13" data-year="2017" data-author-last="Alexander">
         <div class="book-header">
           <div>
             <div class="book-title">Out of Wonder</div>
@@ -735,7 +799,7 @@
         <div class="book-isbn">ISBN 9780763680947</div>
       </article>
 
-      <article class="book-card" data-threads="justice">
+      <article class="book-card" data-threads="justice" data-order="14" data-year="2020" data-author-last="Reynolds">
         <div class="book-header">
           <div>
             <div class="book-title">Stamped: Racism, Antiracism, and You</div>
@@ -751,7 +815,7 @@
         <div class="book-isbn">ISBN 9780316453684</div>
       </article>
 
-      <article class="book-card" data-threads="justice">
+      <article class="book-card" data-threads="justice" data-order="15" data-year="2017" data-author-last="Ostertag">
         <div class="book-header">
           <div>
             <div class="book-title">The Witch Boy</div>
@@ -767,7 +831,7 @@
         <div class="book-isbn">ISBN 9781338089516</div>
       </article>
 
-      <article class="book-card" data-threads="myth justice">
+      <article class="book-card" data-threads="myth justice" data-order="17" data-year="2017" data-author-last="Chanani">
         <div class="book-header">
           <div>
             <div class="book-title">Pashmina: A Graphic Novel</div>
@@ -784,7 +848,7 @@
         <div class="book-isbn">ISBN 9781626720879</div>
       </article>
 
-      <article class="book-card" data-threads="justice">
+      <article class="book-card" data-threads="justice" data-order="16" data-year="2024" data-author-last="Jones">
         <div class="book-header">
           <div>
             <div class="book-title">Kin</div>
@@ -800,7 +864,7 @@
         <div class="book-isbn">ISBN 9780525659181</div>
       </article>
 
-      <article class="book-card" data-threads="science justice">
+      <article class="book-card" data-threads="science justice" data-order="19" data-year="2002" data-author-last="Cerami">
         <div class="book-header">
           <div>
             <div class="book-title">Benjamin Banneker: Surveyor, Astronomer, Publisher, Patriot</div>
@@ -816,7 +880,7 @@
         <div class="book-isbn">ISBN 9780471231059</div>
       </article>
 
-      <article class="book-card" data-threads="science myth">
+      <article class="book-card" data-threads="science myth" data-order="" data-year="2024" data-author-last="Ensworth">
         <div class="book-header">
           <div>
             <div class="book-title">Astrological Ages and the Galactic Center</div>
@@ -833,7 +897,7 @@
         <div class="book-isbn">ISBN 9781591435556</div>
       </article>
 
-      <article class="book-card" data-threads="science nature">
+      <article class="book-card" data-threads="science nature" data-order="21" data-year="1982" data-author-last="Raymo">
         <div class="book-header">
           <div>
             <div class="book-title">365 Starry Nights</div>
@@ -1001,6 +1065,25 @@
 </footer>
 
 <script>
+  /* ── Add reading-order badges on load ── */
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('#bookGrid .book-card[data-order]').forEach(card => {
+      const order = card.dataset.order;
+      if (!order) return;
+      const header = card.querySelector('.book-header');
+      const levelBadge = header.querySelector('.level-badge');
+      const stack = document.createElement('div');
+      stack.className = 'badge-stack';
+      const ob = document.createElement('span');
+      ob.className = 'order-badge';
+      ob.textContent = '#' + order;
+      stack.appendChild(ob);
+      stack.appendChild(levelBadge);
+      header.appendChild(stack);
+    });
+    sortBooks('order', document.querySelector('.sort-btn'));
+  });
+
   /* ── Filter books by thread ── */
   function filterBooks(thread, btn) {
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -1015,12 +1098,35 @@
     });
   }
 
+  /* ── Sort books ── */
+  function sortBooks(method, btn) {
+    document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    const grid = document.getElementById('bookGrid');
+    const cards = Array.from(grid.querySelectorAll('.book-card'));
+    cards.sort((a, b) => {
+      if (method === 'order') {
+        const oa = parseInt(a.dataset.order) || 999;
+        const ob = parseInt(b.dataset.order) || 999;
+        return oa - ob;
+      }
+      if (method === 'author') {
+        return (a.dataset.authorLast || 'zzz').localeCompare(b.dataset.authorLast || 'zzz');
+      }
+      if (method === 'year-asc') {
+        return (parseInt(a.dataset.year) || 9999) - (parseInt(b.dataset.year) || 9999);
+      }
+      if (method === 'year-desc') {
+        return (parseInt(b.dataset.year) || 0) - (parseInt(a.dataset.year) || 0);
+      }
+      return 0;
+    });
+    cards.forEach(card => grid.appendChild(card));
+  }
+
   /* ── Show inline success message on form submit ── */
   function showSuccess(form) {
-    // Let Formspree handle actual submission; show optimistic success UI
     setTimeout(() => {
-      const successId = form.id === 'ra-form' ? 'ra-success' : null;
-      // find the .form-success sibling
       const msg = form.querySelector('.form-success');
       if (msg) msg.style.display = 'block';
     }, 300);
