@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Electric Dipole · Interactive Lab — PHYS-282</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0f1a; color: #c0a880; font-family: 'Courier New', monospace; min-height: 100vh; }
+  .bar { padding: 11px 18px; border-bottom: 1px solid rgba(255,140,30,0.18); display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .bar h1 { font-weight: normal; font-size: 13px; color: #ffa030; letter-spacing: 3px; text-transform: uppercase; }
+  .bar span { font-size: 11px; color: rgba(200,170,130,0.45); }
+  .wrap { display: flex; flex-wrap: wrap; }
+  .left { padding: 14px; flex-shrink: 0; max-width: 100%; }
+  .right { flex: 1; min-width: 280px; padding: 14px; display: flex; flex-direction: column; gap: 11px; border-left: 1px solid rgba(255,140,30,0.1); }
+  canvas { display: block; border: 1px solid rgba(255,140,30,0.18); max-width: 100%; touch-action: none; }
+  #field { cursor: crosshair; }
+  .hint { margin: 5px 0 12px; font-size: 8.5px; color: rgba(180,140,80,0.45); text-align: center; letter-spacing: 1.2px; }
+  .card { background: rgba(255,140,30,0.04); border: 1px solid rgba(255,140,30,0.15); border-radius: 3px; padding: 12px; }
+  .sh { margin: 0 0 10px; font-size: 9px; color: #ffa030; letter-spacing: 2.5px; text-transform: uppercase; }
+  .row { display: flex; justify-content: space-between; font-size: 10px; color: rgba(200,165,110,0.6); margin-bottom: 3px; }
+  .row b { color: #ffd700; font-weight: normal; }
+  input[type=range] { width: 100%; accent-color: #ffa030; margin-bottom: 7px; }
+  button { padding: 5px 9px; font-size: 10px; font-family: 'Courier New', monospace; letter-spacing: 0.8px; background: transparent; border: 1px solid rgba(255,140,30,0.35); color: #c09060; cursor: pointer; border-radius: 2px; }
+  button:hover { background: rgba(255,140,30,0.12); color: #ffa030; }
+  .btns { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+  table { width: 100%; border-collapse: collapse; font-size: 10.5px; }
+  td { padding: 2px 4px; }
+  td.n { text-align: right; color: #e8d0a8; }
+  .note { font-size: 10px; line-height: 1.7; color: rgba(200,165,110,0.65); margin-top: 6px; }
+  .q { font-size: 10.5px; line-height: 1.7; color: rgba(220,190,140,0.85); margin-bottom: 6px; }
+  .opts label { display: block; font-size: 10.5px; margin: 2px 0; cursor: pointer; }
+  .fb { margin-top: 8px; padding: 8px 10px; font-size: 10.5px; line-height: 1.7; border-radius: 2px; display: none; }
+  .fb.ok { display: block; background: rgba(255,180,48,0.08); border: 1px solid rgba(255,180,48,0.3); color: #ffd27a; }
+  .fb.no { display: block; background: rgba(255,80,80,0.07); border: 1px solid rgba(255,80,80,0.3); color: #ff9a8a; }
+  .legend { font-size: 9px; letter-spacing: 1px; color: rgba(200,165,110,0.6); text-align: center; margin-top: 5px; line-height: 1.8; }
+  .foot { font-size: 9px; color: rgba(160,125,80,0.5); line-height: 1.8; padding: 0 2px; }
+</style>
+</head>
+<body>
+<div class="bar">
+  <h1>Electric Dipole · Interactive Lab</h1>
+  <span>Ē<sub>net</sub> = Ē<sub>+</sub> + Ē<sub>−</sub> &nbsp;·&nbsp; E<sub>∥</sub> = (1/4πε₀)·2qs/r³ &nbsp;·&nbsp; E<sub>⊥</sub> = (1/4πε₀)·qs/r³ &nbsp;·&nbsp; V = Σ (1/4πε₀)·q/r &nbsp;·&nbsp; PHYS-282 Ch 13</span>
+</div>
+<div class="wrap">
+  <div class="left">
+    <canvas id="field" width="460" height="460"></canvas>
+    <p class="hint">CLICK OR DRAG TO MOVE THE OBSERVATION POINT ·
+      <span style="color:#ff6040">Ē₊</span> FROM +q · <span style="color:#4c8cff">Ē₋</span> FROM −q · <span style="color:#ffd700">Ē<sub>NET</sub></span> · GRID = 1 cm<br><span style="color:#ff8264">━ +V</span> / <span style="color:#789bff">━ −V</span> / <span style="color:#ddd">┅ 0 V</span> EQUIPOTENTIALS</p>
+    <canvas id="plot" width="460" height="270"></canvas>
+    <p class="legend">|E| vs DISTANCE r FROM DIPOLE CENTRE (log–log)<br>
+      <span style="color:#ffa030">━ on axis (exact)</span> · <span style="color:#ffa030">┅ 2kqs/r³</span> ·
+      <span style="color:#4c8cff">━ bisector (exact)</span> · <span style="color:#4c8cff">┅ kqs/r³</span> ·
+      <span style="color:#8a8a8a">┅ single charge kq/r²</span> · <span style="color:#ffd700">● your point</span></p>
+  </div>
+  <div class="right">
+    <div class="card">
+      <p class="sh">01 · Dipole Setup</p>
+      <div class="row"><span>Charge q</span><b id="qv"></b></div>
+      <input id="q" type="range" min="1" max="20" step="0.5" value="5">
+      <div class="row"><span>Separation s</span><b id="sv"></b></div>
+      <input id="s" type="range" min="0.4" max="6" step="0.1" value="2">
+      <div class="row"><span>Arrow scale (one scale for every arrow)</span><b id="scv"></b></div>
+      <input id="sc" type="range" min="1.5" max="5.5" step="0.05" value="3">
+      <label style="font-size:10px"><input id="grid" type="checkbox" checked> show background field directions</label><br>
+      <label style="font-size:10px"><input id="vcont" type="checkbox" checked> show voltage contours (equipotentials)</label><br>
+      <label style="font-size:10px"><input id="vshade" type="checkbox"> shade by voltage (red = +V, blue = −V)</label>
+      <p class="note" id="vlev"></p>
+      <div class="btns">
+        <button id="snapAxis">Put point on axis</button>
+        <button id="snapBis">Put point on bisector</button>
+      </div>
+      <p class="note">+q sits at y = +s/2, −q at y = −s/2, so the dipole moment p = qs points up (from − to +). Ē crosses every equipotential at a right angle, pointing from high V toward low V.</p>
+    </div>
+    <div class="card">
+      <p class="sh">02 · Field at the Observation Point</p>
+      <table id="ro"></table>
+      <p class="note" id="where"></p>
+    </div>
+    <div class="card" id="P1">
+      <p class="sh">03 · Predict, then Check — 1</p>
+      <p class="q">The observation point is on the perpendicular bisector, to the right of the dipole (p points up). Which way does Ē<sub>net</sub> point?</p>
+      <div class="opts">
+        <label><input type="radio" name="p1" value="a"> Up, along p</label>
+        <label><input type="radio" name="p1" value="b"> Down, opposite p</label>
+        <label><input type="radio" name="p1" value="c"> Right, away from the dipole</label>
+        <label><input type="radio" name="p1" value="d"> Left, toward the dipole</label>
+      </div>
+      <div class="btns"><button id="c1">▶ CHECK</button></div>
+      <div class="fb" id="f1"></div>
+    </div>
+    <div class="card" id="P2">
+      <p class="sh">04 · Predict, then Check — 2</p>
+      <p class="q">On the axis, far from a small dipole (s = 1 cm), you move from r = 6 cm to r = 12 cm. The field becomes…</p>
+      <div class="opts">
+        <label><input type="radio" name="p2" value="a"> ½ as strong</label>
+        <label><input type="radio" name="p2" value="b"> ¼ as strong</label>
+        <label><input type="radio" name="p2" value="c"> ⅛ as strong</label>
+        <label><input type="radio" name="p2" value="d"> 1/16 as strong</label>
+      </div>
+      <div class="btns"><button id="c2">▶ CHECK</button></div>
+      <div class="fb" id="f2"></div>
+    </div>
+    <div class="card" id="P3">
+      <p class="sh">05 · Predict, then Check — 3</p>
+      <p class="q">Now stand on the axis only r = 2s from the centre — not really "r ≫ s". Compared with the exact superposition answer, the shortcut E<sub>∥</sub> = (1/4πε₀)·2qs/r³ is…</p>
+      <div class="opts">
+        <label><input type="radio" name="p3" value="a"> Too small</label>
+        <label><input type="radio" name="p3" value="b"> Too large</label>
+        <label><input type="radio" name="p3" value="c"> Within 1% — still fine</label>
+      </div>
+      <div class="btns"><button id="c3">▶ CHECK</button></div>
+      <div class="fb" id="f3"></div>
+    </div>
+    <div class="foot">Exact fields use the point-charge formula Ē = (1/4πε₀)·q/|r|²·r̂ for each charge, then add them as vectors. 1/4πε₀ = 8.99 × 10⁹ N·m²/C². The field arrows' tails sit at the observation point. Background arrows show direction only. Arrows longer than 9 cm are clipped and marked with a bar. Potential V = Σ (1/4πε₀)·q/r with V = 0 infinitely far away; contours are traced with marching squares on a 4-px grid.</div>
+  </div>
+</div>
+
+<script>
+"use strict";
+// ── Constants & geometry ─────────────────────────────────────────────────────
+const K = 8.99e9;                    // 1/(4πε0), N·m²/C²
+const W = 460, H = 460, SPAN = 24;   // field view is ±12 cm
+const SC = W / SPAN;                 // px per cm
+const OX = W / 2, OY = H / 2;
+const MAXLEN_CM = 9;
+
+const state = { q: 5, s: 2, logScale: 3, grid: true, contours: true, shade: false, ox: 6, oy: 4 };
+
+const $ = id => document.getElementById(id);
+const tC = (x, y) => [OX + x * SC, OY - y * SC];
+const tP = (cx, cy) => [(cx - OX) / SC, (OY - cy) / SC];
+
+// ── Physics (positions in cm, q in nC, results in N/C) ───────────────────────
+function charges() {
+  return [{ x: 0, y: state.s / 2, q: +state.q }, { x: 0, y: -state.s / 2, q: -state.q }];
+}
+function pointField(c, px, py) {
+  const dx = (px - c.x) / 100, dy = (py - c.y) / 100;    // r = obs − source, metres
+  const r = Math.hypot(dx, dy);
+  if (r < 1e-4) return null;
+  const f = K * c.q * 1e-9 / (r * r * r);                // k q / r² · r̂  =  k q r⃗ / r³
+  return [f * dx, f * dy];
+}
+function netField(px, py) {
+  const parts = charges().map(c => pointField(c, px, py));
+  if (parts.some(p => p === null)) return null;
+  return { plus: parts[0], minus: parts[1], net: [parts[0][0] + parts[1][0], parts[0][1] + parts[1][1]] };
+}
+const p_Cm = () => state.q * 1e-9 * state.s / 100;      // dipole moment, C·m
+const axisExact = r => { const a = state.s / 200, R = r / 100; return K * state.q * 1e-9 * (1 / ((R - a) ** 2) - 1 / ((R + a) ** 2)); };
+const bisExact  = r => { const a = state.s / 200, R = r / 100; return K * state.q * 1e-9 * 2 * a / Math.pow(R * R + a * a, 1.5); };
+const axisApprox = r => 2 * K * p_Cm() / ((r / 100) ** 3);
+const bisApprox  = r => K * p_Cm() / ((r / 100) ** 3);
+const single     = r => K * state.q * 1e-9 / ((r / 100) ** 2);
+
+// ── Electric potential (volts, V = 0 infinitely far away) ────────────────────
+function potential(px, py) {
+  let V = 0;
+  for (const c of charges()) {
+    const r = Math.hypot(px - c.x, py - c.y) / 100;          // metres
+    V += K * c.q * 1e-9 / Math.max(r, 1e-4);                   // V = Σ (1/4πε0) q / r
+  }
+  return V;
+}
+const vRef = () => Math.abs(potential(0, state.s / 2 + 0.6)); // |V| 0.6 cm outside +q
+function niceLevels() {                                        // 1–2–5 steps, positive side
+  const top = vRef(), out = [];
+  for (let e = -3; e <= 9; e++) for (const m of [1, 2, 5]) {
+    const v = m * 10 ** e;
+    if (v <= top && v >= top / 400) out.push(v);
+  }
+  return out;
+}
+function drawShade(ctx) {
+  const B = 4, top = vRef(), lo = top / 400, span = Math.log10(top / lo);
+  for (let cy = 0; cy < H; cy += B) for (let cx = 0; cx < W; cx += B) {
+    const [x, y] = tP(cx + B / 2, cy + B / 2), V = potential(x, y), a = Math.abs(V);
+    if (a < lo) continue;
+    const t = Math.min(1, Math.log10(a / lo) / span), al = (0.04 + 0.32 * t).toFixed(3);
+    ctx.fillStyle = V > 0 ? `rgba(255,96,64,${al})` : `rgba(64,100,255,${al})`;
+    ctx.fillRect(cx, cy, B, B);
+  }
+}
+function drawContours(ctx) {
+  // Marching squares on a 4-px grid
+  const G = 4, N = Math.floor(W / G);
+  const vals = [];
+  for (let j = 0; j <= N; j++) {
+    const row = [];
+    for (let i = 0; i <= N; i++) { const [x, y] = tP(i * G, j * G); row.push(potential(x, y)); }
+    vals.push(row);
+  }
+  const pos = niceLevels(), levels = [0, ...pos, ...pos.map(v => -v)];
+  const differ = (u, v) => (u > 0) === (v <= 0);
+  ctx.lineWidth = 1;
+  for (const L of levels) {
+    ctx.strokeStyle = L > 0 ? "rgba(255,130,100,0.6)" : (L < 0 ? "rgba(120,155,255,0.6)" : "rgba(235,235,235,0.6)");
+    ctx.setLineDash(L === 0 ? [4, 3] : []);
+    ctx.beginPath();
+    for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
+      const a = vals[j][i] - L, b = vals[j][i + 1] - L, c = vals[j + 1][i + 1] - L, d = vals[j + 1][i] - L;
+      const pts = [];
+      if (differ(a, b)) pts.push([i + a / (a - b), j]);
+      if (differ(b, c)) pts.push([i + 1, j + b / (b - c)]);
+      if (differ(c, d)) pts.push([i + 1 - c / (c - d), j + 1]);
+      if (differ(d, a)) pts.push([i, j + 1 - d / (d - a)]);
+      for (let k = 0; k + 1 < pts.length; k += 2) {
+        ctx.moveTo(pts[k][0] * G, pts[k][1] * G);
+        ctx.lineTo(pts[k + 1][0] * G, pts[k + 1][1] * G);
+      }
+    }
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+}
+
+// ── Formatting ───────────────────────────────────────────────────────────────
+function sci(v, d = 2) {
+  if (!isFinite(v)) return "—";
+  if (v === 0) return "0";
+  const e = Math.floor(Math.log10(Math.abs(v)));
+  if (e >= -1 && e <= 3) return v.toFixed(Math.max(0, d - e));
+  const m = v / 10 ** e;
+  return m.toFixed(d) + "×10" + String(e).split("").map(ch => "⁰¹²³⁴⁵⁶⁷⁸⁹"["0123456789".indexOf(ch)] || "⁻").join("");
+}
+const nPerCm = () => 10 ** state.logScale;               // N/C represented by 1 cm of arrow
+
+// ── Field canvas ─────────────────────────────────────────────────────────────
+const fcv = $("field"), fctx = fcv.getContext("2d");
+
+function arrow(ctx, x0, y0, x1, y1, color, width, head = 8) {
+  const ang = Math.atan2(y1 - y0, x1 - x0), len = Math.hypot(x1 - x0, y1 - y0);
+  if (len < 0.5) return;
+  const h = Math.min(head, len * 0.5);
+  ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = width;
+  ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1 - h * 0.6 * Math.cos(ang), y1 - h * 0.6 * Math.sin(ang)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x1, y1);
+  ctx.lineTo(x1 - h * Math.cos(ang - 0.38), y1 - h * Math.sin(ang - 0.38));
+  ctx.lineTo(x1 - h * Math.cos(ang + 0.38), y1 - h * Math.sin(ang + 0.38));
+  ctx.closePath(); ctx.fill();
+}
+function fieldArrow(ctx, E, color, width) {
+  // Tail at the observation point; length = |E| on one shared scale.
+  const mag = Math.hypot(E[0], E[1]);
+  let Lcm = mag / nPerCm(), clipped = false;
+  if (Lcm > MAXLEN_CM) { Lcm = MAXLEN_CM; clipped = true; }
+  const [x0, y0] = tC(state.ox, state.oy);
+  const ux = E[0] / mag, uy = E[1] / mag;
+  const x1 = x0 + ux * Lcm * SC, y1 = y0 - uy * Lcm * SC;
+  arrow(ctx, x0, y0, x1, y1, color, width, 10);
+  if (clipped) {                                         // bar across the shaft = "clipped"
+    const mx = x0 + ux * Lcm * SC * 0.7, my = y0 - uy * Lcm * SC * 0.7;
+    ctx.strokeStyle = color; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(mx - uy * 6, my - ux * 6); ctx.lineTo(mx + uy * 6, my + ux * 6); ctx.stroke();
+  }
+}
+
+function drawField() {
+  const ctx = fctx;
+  ctx.fillStyle = "#0a0f1a"; ctx.fillRect(0, 0, W, H);
+  if (state.shade) drawShade(ctx);
+  for (let g = -12; g <= 12; g++) {
+    const [gx] = tC(g, 0), [, gy] = tC(0, g);
+    ctx.lineWidth = g === 0 ? 1 : 0.5;
+    ctx.strokeStyle = g === 0 ? "rgba(160,100,50,0.45)" : (g % 2 ? "rgba(130,75,30,0.10)" : "rgba(130,75,30,0.2)");
+    ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke();
+  }
+  ctx.font = "8px 'Courier New'"; ctx.fillStyle = "rgba(160,100,50,0.4)"; ctx.textAlign = "center";
+  for (let g = -10; g <= 10; g += 2) { if (!g) continue; const [gx] = tC(g, 0); ctx.fillText(g, gx, OY + 12); const [, gy] = tC(0, g); ctx.fillText(g, OX - 10, gy + 3); }
+  ctx.fillText("cm", W - 12, OY + 12);
+
+  if (state.contours) drawContours(ctx);
+
+  // Background field: direction only, brightness ~ log|E|
+  if (state.grid) {
+    const pts = [];
+    for (let x = -11; x <= 11; x += 1.5) for (let y = -11; y <= 11; y += 1.5) {
+      const f = netField(x, y); if (!f) continue;
+      const m = Math.hypot(f.net[0], f.net[1]); if (!m) continue;
+      pts.push([x, y, f.net[0] / m, f.net[1] / m, Math.log10(m)]);
+    }
+    const lo = Math.min(...pts.map(p => p[4])), hi = Math.max(...pts.map(p => p[4]));
+    for (const [x, y, ux, uy, lm] of pts) {
+      const a = 0.12 + 0.5 * (lm - lo) / ((hi - lo) || 1);
+      const [cx, cy] = tC(x, y), L = 0.55 * SC;
+      arrow(ctx, cx - ux * L / 2, cy + uy * L / 2, cx + ux * L / 2, cy - uy * L / 2, `rgba(255,160,60,${a.toFixed(2)})`, 1, 4);
+    }
+  }
+
+  // Dipole moment arrow and charges
+  const [, ytop] = tC(0, state.s / 2), [, ybot] = tC(0, -state.s / 2);
+  ctx.setLineDash([3, 3]); ctx.strokeStyle = "rgba(200,170,130,0.35)"; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(OX, 0); ctx.lineTo(OX, H); ctx.moveTo(0, OY); ctx.lineTo(W, OY); ctx.stroke(); ctx.setLineDash([]);
+  ctx.font = "9px 'Courier New'"; ctx.fillStyle = "rgba(200,170,130,0.5)"; ctx.textAlign = "left";
+  ctx.fillText("axis", OX + 4, 12); ctx.fillText("bisector", W - 56, OY - 5);
+  for (const c of charges()) {
+    const [cx, cy] = tC(c.x, c.y), pos = c.q > 0;
+    const rad = 6 + Math.min(6, Math.abs(c.q) * 0.3);
+    ctx.fillStyle = pos ? "#ff6040" : "#4064ff";
+    ctx.beginPath(); ctx.arc(cx, cy, rad, 0, 2 * Math.PI); ctx.fill();
+    ctx.fillStyle = "#0a0f1a"; ctx.font = "bold 12px 'Courier New'"; ctx.textAlign = "center";
+    ctx.fillText(pos ? "+" : "−", cx, cy + 4);
+  }
+  if (Math.abs(ytop - ybot) > 26) arrow(ctx, OX + 16, ybot, OX + 16, ytop, "rgba(220,220,220,0.7)", 1.5, 6);
+  ctx.fillStyle = "rgba(220,220,220,0.75)"; ctx.font = "10px 'Courier New'"; ctx.textAlign = "left";
+  ctx.fillText("p", OX + 20, (ytop + ybot) / 2 + 3);
+
+  // Field vectors at the observation point
+  const f = netField(state.ox, state.oy);
+  const [ox, oy] = tC(state.ox, state.oy);
+  if (f) {
+    ctx.setLineDash([2, 4]); ctx.strokeStyle = "rgba(200,170,130,0.25)"; ctx.lineWidth = 1;
+    for (const c of charges()) { const [cx, cy] = tC(c.x, c.y); ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(ox, oy); ctx.stroke(); }
+    ctx.setLineDash([]);
+    fieldArrow(ctx, f.plus, "rgba(255,96,64,0.9)", 2);
+    fieldArrow(ctx, f.minus, "rgba(76,140,255,0.9)", 2);
+    fieldArrow(ctx, f.net, "#ffd700", 3);
+  }
+  ctx.strokeStyle = "#ffd700"; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(ox, oy, 5, 0, 2 * Math.PI); ctx.stroke();
+  // Scale bar
+  ctx.fillStyle = "rgba(200,170,130,0.6)"; ctx.font = "9px 'Courier New'"; ctx.textAlign = "left";
+  ctx.strokeStyle = "rgba(200,170,130,0.6)"; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(10, H - 12); ctx.lineTo(10 + SC, H - 12); ctx.stroke();
+  ctx.fillText("= " + sci(nPerCm()) + " N/C", 14 + SC, H - 9);
+}
+
+// ── Plot canvas ──────────────────────────────────────────────────────────────
+const pcv = $("plot"), pctx = pcv.getContext("2d");
+function drawPlot() {
+  const ctx = pctx, PW = pcv.width, PH = pcv.height, L = 52, R = 10, T = 10, B = 30;
+  ctx.fillStyle = "#0a0f1a"; ctx.fillRect(0, 0, PW, PH);
+  const rmin = Math.max(0.65 * state.s, 0.3), rmax = 100;
+  const lx0 = Math.log10(rmin), lx1 = Math.log10(rmax);
+  const fns = [axisExact, axisApprox, bisExact, bisApprox, single];
+  let lo = Infinity, hi = -Infinity;
+  for (let i = 0; i <= 200; i++) {
+    const r = 10 ** (lx0 + (lx1 - lx0) * i / 200);
+    for (const fn of fns) { const v = fn(r); if (v > 0 && isFinite(v)) { lo = Math.min(lo, v); hi = Math.max(hi, v); } }
+  }
+  const ly1 = Math.ceil(Math.log10(hi)), ly0 = Math.max(Math.floor(Math.log10(lo)), ly1 - 9);
+  const X = r => L + (Math.log10(r) - lx0) / (lx1 - lx0) * (PW - L - R);
+  const Y = v => T + (ly1 - Math.log10(v)) / (ly1 - ly0) * (PH - T - B);
+
+  ctx.font = "8px 'Courier New'"; ctx.fillStyle = "rgba(160,100,50,0.6)";
+  ctx.strokeStyle = "rgba(130,75,30,0.22)"; ctx.lineWidth = 0.5;
+  for (let e = Math.ceil(lx0); e <= lx1; e++) for (const m of [1, 2, 5]) {
+    const r = m * 10 ** e; if (r < rmin || r > rmax) continue;
+    ctx.beginPath(); ctx.moveTo(X(r), T); ctx.lineTo(X(r), PH - B); ctx.stroke();
+    ctx.textAlign = "center"; ctx.fillText(String(+r.toPrecision(2)), X(r), PH - B + 11);
+  }
+  if (rmin < 1) { ctx.textAlign = "center"; ctx.fillText(rmin.toFixed(1), X(rmin), PH - B + 11); }
+  for (let e = ly0; e <= ly1; e++) {
+    ctx.beginPath(); ctx.moveTo(L, Y(10 ** e)); ctx.lineTo(PW - R, Y(10 ** e)); ctx.stroke();
+    ctx.textAlign = "right"; ctx.fillText("1e" + e, L - 4, Y(10 ** e) + 3);
+  }
+  ctx.textAlign = "center"; ctx.fillStyle = "rgba(200,165,110,0.6)";
+  ctx.fillText("r (cm)", (L + PW) / 2, PH - 6);
+  ctx.save(); ctx.translate(10, (T + PH - B) / 2); ctx.rotate(-Math.PI / 2); ctx.fillText("|E| (N/C)", 0, 0); ctx.restore();
+
+  ctx.save(); ctx.beginPath(); ctx.rect(L, T, PW - L - R, PH - T - B); ctx.clip();
+  const curve = (fn, color, dash, w) => {
+    ctx.strokeStyle = color; ctx.setLineDash(dash); ctx.lineWidth = w; ctx.beginPath();
+    let started = false;
+    for (let i = 0; i <= 300; i++) {
+      const r = 10 ** (lx0 + (lx1 - lx0) * i / 300), v = fn(r);
+      if (!(v > 0) || !isFinite(v)) { started = false; continue; }
+      const px = X(r), py = Math.max(-1000, Math.min(1000, Y(v)));
+      if (!started) { ctx.moveTo(px, py); started = true; } else ctx.lineTo(px, py);
+    }
+    ctx.stroke(); ctx.setLineDash([]);
+  };
+  curve(single, "#8a8a8a", [2, 4], 1);
+  curve(bisApprox, "#4c8cff", [5, 4], 1.2);
+  curve(axisApprox, "#ffa030", [5, 4], 1.2);
+  curve(bisExact, "#4c8cff", [], 2);
+  curve(axisExact, "#ffa030", [], 2);
+  const f = netField(state.ox, state.oy), r = Math.hypot(state.ox, state.oy);
+  if (f && r > 0) {
+    const m = Math.hypot(f.net[0], f.net[1]);
+    if (m > 0 && r >= rmin) { ctx.fillStyle = "#ffd700"; ctx.beginPath(); ctx.arc(X(r), Y(m), 4.5, 0, 2 * Math.PI); ctx.fill(); }
+  }
+  ctx.restore();
+}
+
+// ── Readout ──────────────────────────────────────────────────────────────────
+function classify() {
+  const tol = 0.12;
+  if (Math.abs(state.ox) < tol && Math.abs(state.oy) > state.s / 2 + 0.05) return "axis";
+  if (Math.abs(state.oy) < tol) return "bisector";
+  return "other";
+}
+function updateReadout() {
+  $("qv").textContent = state.q.toFixed(1) + " nC";
+  $("sv").textContent = state.s.toFixed(1) + " cm";
+  $("scv").textContent = "1 cm = " + sci(nPerCm()) + " N/C";
+  { const lv = niceLevels(); $("vlev").textContent = `Contours at ±${sci(lv[0])} V up to ±${sci(lv[lv.length - 1])} V in 1–2–5 steps; dashed white = 0 V.`; }
+  const f = netField(state.ox, state.oy), r = Math.hypot(state.ox, state.oy);
+  const ro = $("ro");
+  if (!f) { ro.innerHTML = "<tr><td>Observation point is on a charge — move it.</td></tr>"; $("where").textContent = ""; return; }
+  const row = (lbl, E, col) => `<tr><td style="color:${col}">${lbl}</td><td class="n">⟨${sci(E[0])}, ${sci(E[1])}⟩</td><td class="n">${sci(Math.hypot(E[0], E[1]))}</td></tr>`;
+  ro.innerHTML =
+    `<tr><td>obs</td><td class="n">⟨${state.ox.toFixed(2)}, ${state.oy.toFixed(2)}⟩ cm</td><td class="n">r = ${r.toFixed(2)} cm</td></tr>` +
+    `<tr><td></td><td class="n" style="color:rgba(200,165,110,0.5)">components (N/C)</td><td class="n" style="color:rgba(200,165,110,0.5)">|E| (N/C)</td></tr>` +
+    row("Ē₊", f.plus, "#ff6040") + row("Ē₋", f.minus, "#4c8cff") + row("Ē net", f.net, "#ffd700") +
+    `<tr><td style="color:#e8e8e8">V</td><td class="n" style="color:rgba(200,165,110,0.5)">potential (V = 0 far away)</td><td class="n">${sci(potential(state.ox, state.oy))} V</td></tr>`;
+  const where = classify(), mag = Math.hypot(f.net[0], f.net[1]);
+  let txt;
+  if (where === "axis") {
+    const ap = axisApprox(Math.abs(state.oy)), d = (ap - mag) / mag * 100;
+    txt = `On the AXIS (A). Shortcut 2kqs/r³ = ${sci(ap)} N/C vs exact ${sci(mag)} N/C → shortcut is ${Math.abs(d).toFixed(1)}% ${d < 0 ? "low" : "high"}. r/s = ${(r / state.s).toFixed(1)}. Ē points ${f.net[1] > 0 ? "along" : "against"} p.`;
+  } else if (where === "bisector") {
+    const ap = bisApprox(Math.abs(state.ox)), d = (ap - mag) / mag * 100;
+    txt = `On the PERPENDICULAR BISECTOR (B). Shortcut kqs/r³ = ${sci(ap)} N/C vs exact ${sci(mag)} N/C → shortcut is ${Math.abs(d).toFixed(1)}% ${d < 0 ? "low" : "high"}. r/s = ${(r / state.s).toFixed(1)}. Ē points ${f.net[1] < 0 ? "opposite" : "along"} p. V = 0 all along the bisector — it is an equipotential (dashed white line).`;
+  } else {
+    txt = "Anywhere else (G): no shortcut formula — only superposition of the two point-charge fields works here.";
+  }
+  $("where").textContent = txt;
+}
+
+function redraw() { updateReadout(); drawField(); drawPlot(); }
+function syncInputs() { $("q").value = state.q; $("s").value = state.s; $("sc").value = state.logScale; $("grid").checked = state.grid; }
+
+// ── Controls ─────────────────────────────────────────────────────────────────
+$("q").addEventListener("input", e => { state.q = +e.target.value; redraw(); });
+$("s").addEventListener("input", e => { state.s = +e.target.value; redraw(); });
+$("sc").addEventListener("input", e => { state.logScale = +e.target.value; redraw(); });
+$("grid").addEventListener("change", e => { state.grid = e.target.checked; redraw(); });
+$("vcont").addEventListener("change", e => { state.contours = e.target.checked; redraw(); });
+$("vshade").addEventListener("change", e => { state.shade = e.target.checked; redraw(); });
+$("snapAxis").addEventListener("click", () => { const r = Math.max(Math.hypot(state.ox, state.oy), state.s); state.ox = 0; state.oy = Math.min(r, 11); redraw(); });
+$("snapBis").addEventListener("click", () => { const r = Math.max(Math.hypot(state.ox, state.oy), 0.5); state.oy = 0; state.ox = Math.min(r, 11); redraw(); });
+
+let dragging = false;
+function setFromEvent(e) {
+  const rect = fcv.getBoundingClientRect(), src = (e.touches && e.touches[0]) || e;
+  const cx = (src.clientX - rect.left) * (W / rect.width), cy = (src.clientY - rect.top) * (H / rect.height);
+  let [x, y] = tP(cx, cy);
+  x = Math.max(-11.8, Math.min(11.8, x)); y = Math.max(-11.8, Math.min(11.8, y));
+  if (Math.abs(x) < 0.15) x = 0;                  // gentle snap onto the axis / bisector
+  if (Math.abs(y) < 0.15) y = 0;
+  state.ox = Math.round(x * 100) / 100; state.oy = Math.round(y * 100) / 100;
+  redraw();
+}
+fcv.addEventListener("pointerdown", e => { dragging = true; fcv.setPointerCapture && fcv.setPointerCapture(e.pointerId); setFromEvent(e); });
+fcv.addEventListener("pointermove", e => { if (dragging) setFromEvent(e); });
+window.addEventListener("pointerup", () => { dragging = false; });
+
+// ── Predict, then check ──────────────────────────────────────────────────────
+function picked(name) { const el = document.querySelector(`input[name=${name}]:checked`); return el ? el.value : null; }
+function feedback(id, ok, html) { const fb = $(id); fb.className = "fb " + (ok ? "ok" : "no"); fb.innerHTML = html; }
+
+$("c1").addEventListener("click", () => {
+  const ans = picked("p1");
+  if (!ans) return feedback("f1", false, "Make a prediction first.");
+  state.ox = 7; state.oy = 0; redraw();
+  const f = netField(7, 0);
+  feedback("f1", ans === "b",
+    (ans === "b" ? "✓ Right. " : "✗ Not quite. ") +
+    `Look at the arrows at x = 7 cm: Ē₊ points away from +q (right and down), Ē₋ points toward −q (left and down). ` +
+    `The horizontal parts cancel and the vertical parts add, so Ē<sub>net</sub> = ⟨${sci(f.net[0])}, ${sci(f.net[1])}⟩ N/C — straight <b>down, opposite p</b>.`);
+});
+
+$("c2").addEventListener("click", () => {
+  const ans = picked("p2");
+  if (!ans) return feedback("f2", false, "Make a prediction first.");
+  state.s = 1; syncInputs();
+  const e6 = axisExact(6), e12 = axisExact(12), ratio = e12 / e6;
+  state.ox = 0; state.oy = 12; redraw();
+  feedback("f2", ans === "c",
+    (ans === "c" ? "✓ Right. " : "✗ Not quite. ") +
+    `Exact: |E|(6 cm) = ${sci(e6)} N/C, |E|(12 cm) = ${sci(e12)} N/C, ratio = ${ratio.toFixed(3)} ≈ 1/${(1 / ratio).toFixed(1)}. ` +
+    `A dipole field falls off as <b>1/r³</b>, so doubling r gives (½)³ = ⅛. A single charge would only drop to ¼ (the grey dotted line on the plot has a shallower slope).`);
+});
+
+$("c3").addEventListener("click", () => {
+  const ans = picked("p3");
+  if (!ans) return feedback("f3", false, "Make a prediction first.");
+  const r = 2 * state.s; state.ox = 0; state.oy = Math.min(r, 11.8); redraw();
+  const ex = axisExact(state.oy), ap = axisApprox(state.oy), d = (ap - ex) / ex * 100;
+  feedback("f3", ans === "a",
+    (ans === "a" ? "✓ Right. " : "✗ Not quite. ") +
+    `At r = ${state.oy.toFixed(1)} cm (s = ${state.s.toFixed(1)} cm): exact = ${sci(ex)} N/C, shortcut = ${sci(ap)} N/C, so the shortcut is <b>${Math.abs(d).toFixed(1)}% too small</b>. ` +
+    `The nearer charge's 1/r² term grows faster than the far charge's shrinks. On the plot, the solid and dashed orange lines only merge once r ≫ s — drag the point outward and watch the % gap shrink.`);
+});
+
+syncInputs();
+redraw();
+</script>
+</body>
+</html>
