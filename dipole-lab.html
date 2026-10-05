@@ -112,6 +112,57 @@
       <div class="btns"><button id="c3">▶ CHECK</button></div>
       <div class="fb" id="f3"></div>
     </div>
+    <div class="card" style="border-color:rgba(255,215,0,0.35)">
+      <p class="sh" style="color:#ffd700">Worksheet · Voltage &amp; Equipotentials</p>
+      <p class="note" style="margin-top:0">Turn on the voltage contours (01 · Dipole Setup). For each question, commit to a prediction first, then press CHECK. The page moves the observation point for you.</p>
+    </div>
+    <div class="card" id="V1">
+      <p class="sh">06 · Voltage Worksheet — 1</p>
+      <p class="q">What is the electric potential V at points on the perpendicular bisector of the dipole?</p>
+      <div class="opts">
+        <label><input type="radio" name="v1" value="a"> Positive</label>
+        <label><input type="radio" name="v1" value="b"> Zero</label>
+        <label><input type="radio" name="v1" value="c"> Negative</label>
+        <label><input type="radio" name="v1" value="d"> It depends on how far you are from the dipole</label>
+      </div>
+      <div class="btns"><button id="cv1">▶ CHECK</button></div>
+      <div class="fb" id="fv1"></div>
+    </div>
+    <div class="card" id="V2">
+      <p class="sh">07 · Voltage Worksheet — 2</p>
+      <p class="q">V = 0 on the bisector. Is Ē also zero there?</p>
+      <div class="opts">
+        <label><input type="radio" name="v2" value="a"> Yes — if V = 0, then Ē = 0</label>
+        <label><input type="radio" name="v2" value="b"> No — Ē is nonzero and points along p (up)</label>
+        <label><input type="radio" name="v2" value="c"> No — Ē is nonzero and points opposite p (down)</label>
+      </div>
+      <div class="btns"><button id="cv2">▶ CHECK</button></div>
+      <div class="fb" id="fv2"></div>
+    </div>
+    <div class="card" id="V3">
+      <p class="sh">08 · Voltage Worksheet — 3</p>
+      <p class="q">At any point, how does Ē point relative to the equipotential contour passing through that point?</p>
+      <div class="opts">
+        <label><input type="radio" name="v3" value="a"> Parallel to (along) the contour</label>
+        <label><input type="radio" name="v3" value="b"> Perpendicular to the contour, toward higher V</label>
+        <label><input type="radio" name="v3" value="c"> Perpendicular to the contour, toward lower V</label>
+        <label><input type="radio" name="v3" value="d"> No fixed relationship</label>
+      </div>
+      <div class="btns"><button id="cv3">▶ CHECK</button></div>
+      <div class="fb" id="fv3"></div>
+    </div>
+    <div class="card" id="V4">
+      <p class="sh">09 · Voltage Worksheet — 4</p>
+      <p class="q">Where equal-step equipotential contours (say 10 V apart) are packed closest together, the field is…</p>
+      <div class="opts">
+        <label><input type="radio" name="v4" value="a"> Weakest</label>
+        <label><input type="radio" name="v4" value="b"> Strongest</label>
+        <label><input type="radio" name="v4" value="c"> Zero</label>
+        <label><input type="radio" name="v4" value="d"> Spacing tells you nothing about |E|</label>
+      </div>
+      <div class="btns"><button id="cv4">▶ CHECK</button></div>
+      <div class="fb" id="fv4"></div>
+    </div>
     <div class="foot">Exact fields use the point-charge formula Ē = (1/4πε₀)·q/|r|²·r̂ for each charge, then add them as vectors. 1/4πε₀ = 8.99 × 10⁹ N·m²/C². The field arrows' tails sit at the observation point. Background arrows show direction only. Arrows longer than 9 cm are clipped and marked with a bar. Potential V = Σ (1/4πε₀)·q/r with V = 0 infinitely far away; contours are traced with marching squares on a 4-px grid.</div>
   </div>
 </div>
@@ -421,7 +472,7 @@ function updateReadout() {
 }
 
 function redraw() { updateReadout(); drawField(); drawPlot(); }
-function syncInputs() { $("q").value = state.q; $("s").value = state.s; $("sc").value = state.logScale; $("grid").checked = state.grid; }
+function syncInputs() { $("q").value = state.q; $("s").value = state.s; $("sc").value = state.logScale; $("grid").checked = state.grid; $("vcont").checked = state.contours; $("vshade").checked = state.shade; }
 
 // ── Controls ─────────────────────────────────────────────────────────────────
 $("q").addEventListener("input", e => { state.q = +e.target.value; redraw(); });
@@ -484,6 +535,61 @@ $("c3").addEventListener("click", () => {
     (ans === "a" ? "✓ Right. " : "✗ Not quite. ") +
     `At r = ${state.oy.toFixed(1)} cm (s = ${state.s.toFixed(1)} cm): exact = ${sci(ex)} N/C, shortcut = ${sci(ap)} N/C, so the shortcut is <b>${Math.abs(d).toFixed(1)}% too small</b>. ` +
     `The nearer charge's 1/r² term grows faster than the far charge's shrinks. On the plot, the solid and dashed orange lines only merge once r ≫ s — drag the point outward and watch the % gap shrink.`);
+});
+
+// ── Voltage worksheet ────────────────────────────────────────────────────────
+function moveTo(x, y) { state.contours = true; syncInputs(); state.ox = x; state.oy = y; redraw(); }
+const fmtV = v => (Math.abs(v) < 1e-6 ? "0" : sci(v)) + " V";
+
+$("cv1").addEventListener("click", () => {
+  const ans = picked("v1");
+  if (ans === null) return feedback("fv1", false, "Make a prediction first.");
+  moveTo(7, 0);
+  const vs = [2, 7, 11].map(x => `V(${x} cm) = ${fmtV(potential(x, 0))}`).join(", ");
+  feedback("fv1", ans === "b",
+    (ans === "b" ? "✓ Right. " : "✗ Not quite. ") +
+    `${vs}. Every point on the bisector is the same distance from +q and −q, so kq/r and k(−q)/r cancel exactly: <b>V = 0</b> at any distance. That is why the bisector is the dashed white 0 V contour.`);
+});
+
+$("cv2").addEventListener("click", () => {
+  const ans = picked("v2");
+  if (ans === null) return feedback("fv2", false, "Make a prediction first.");
+  moveTo(4, 0);
+  const f = netField(4, 0);
+  feedback("fv2", ans === "c",
+    (ans === "c" ? "✓ Right. " : "✗ Not quite. ") +
+    `At x = 4 cm: V = ${fmtV(potential(4, 0))} but Ē = ⟨${sci(f.net[0])}, ${sci(f.net[1])}⟩ N/C — <b>nonzero, pointing down</b>. ` +
+    `Ē depends on how V <i>changes</i> from place to place (E<sub>y</sub> = −ΔV/Δy), not on the value of V. V stays 0 as you slide along the bisector, but it rises above it (toward +q) and falls below it, so Ē points down.`);
+});
+
+$("cv3").addEventListener("click", () => {
+  const ans = picked("v3");
+  if (ans === null) return feedback("fv3", false, "Make a prediction first.");
+  const x = 4.5, y = 3; moveTo(x, y);
+  const d = 1e-3;                                                  // cm
+  const gx = (potential(x + d, y) - potential(x - d, y)) / (2 * d);
+  const gy = (potential(x, y + d) - potential(x, y - d)) / (2 * d);
+  const tx = -gy, ty = gx, tm = Math.hypot(tx, ty);                // contour tangent
+  const E = netField(x, y).net, Em = Math.hypot(E[0], E[1]);
+  const ang = Math.acos(Math.min(1, Math.abs(E[0] * tx + E[1] * ty) / (Em * tm))) * 180 / Math.PI;
+  const step = 0.5, V0 = potential(x, y), V1 = potential(x + step * E[0] / Em, y + step * E[1] / Em);
+  feedback("fv3", ans === "c",
+    (ans === "c" ? "✓ Right. " : "✗ Not quite. ") +
+    `At ⟨${x}, ${y}⟩ cm the angle between Ē and the contour is <b>${ang.toFixed(1)}°</b>. Stepping 0.5 cm along Ē takes V from ${fmtV(V0)} to ${fmtV(V1)} — <b>downhill</b>. ` +
+    `Moving along a contour does no work (ΔV = 0), so Ē can have no component along it; Ē always points from high V toward low V.`);
+});
+
+$("cv4").addEventListener("click", () => {
+  const ans = picked("v4");
+  if (ans === null) return feedback("fv4", false, "Make a prediction first.");
+  const yn = Math.min(state.s / 2 + 1, 11.8), yf = Math.min(state.s / 2 + 7, 11.8);
+  moveTo(0, yn);
+  const En = Math.hypot(...netField(0, yn).net), Ef = Math.hypot(...netField(0, yf).net);
+  const gap = E => (10 / E) * 1000;                                // mm between contours 10 V apart
+  feedback("fv4", ans === "b",
+    (ans === "b" ? "✓ Right. " : "✗ Not quite. ") +
+    `Near the dipole (y = ${yn.toFixed(1)} cm): |E| = ${sci(En)} N/C, so 10 V contours are ${sci(gap(En))} mm apart. ` +
+    `Farther out (y = ${yf.toFixed(1)} cm): |E| = ${sci(Ef)} N/C, ${sci(gap(Ef))} mm apart. Since |E| ≈ |ΔV|/Δd, <b>tightly packed contours mean a strong field</b>; widely spaced contours mean a weak one.`);
 });
 
 syncInputs();
